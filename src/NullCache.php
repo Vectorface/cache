@@ -26,7 +26,7 @@ class NullCache implements Cache
      * @param int $ttl The time to live (or expiry) of the cached item. Not all caches honor the TTL.
      * @return bool True if successful, false otherwise.
      */
-    public function set($entry, $value, $ttl = false)
+    public function set($key, $value, $ttl = false)
     {
         return false;
     }

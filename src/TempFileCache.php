@@ -79,7 +79,7 @@ class TempFileCache implements Cache
      * Set an entry in the cache.
      *
      * @param String $key The key/index for the cache entry
-     * @param mixed $val The item to store in the cache
+     * @param mixed $value The item to store in the cache
      * @param int $ttl The time to live (or expiry) of the cached item. Not all caches honor the TTL.
      * @return bool True if the value was successfully stored, or false otherwise.
      */
@@ -91,7 +91,8 @@ class TempFileCache implements Cache
 
     /**
      * Delete an entry in the cache by key regaurdless of TTL
-     * @param  $string $key A key to delete from the cache.
+     *
+     * @param string $key A key to delete from the cache.
      * @return bool True if the cache entry was successfully deleted, false otherwise.
      */
     public function delete($key)

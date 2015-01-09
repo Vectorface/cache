@@ -64,21 +64,21 @@ class SQLCache implements Cache
     /**
      * The database connection to be used for cache operations.
      *
-     * @var PDO
+     * @var \PDO
      */
     private $conn;
 
     /**
      * An associative array of PDO statements used in get/set.
      *
-     * @var PDOStatement
+     * @var \PDOStatement
      */
     private $statements = array();
 
     /**
      * Create an instance of the SQL cache.
      *
-     * @param PDO $conn The database connection to use for cache operations.
+     * @param \PDO $conn The database connection to use for cache operations.
      */
     public function __construct(\PDO $conn)
     {
@@ -112,7 +112,7 @@ class SQLCache implements Cache
      * @param string $key The cache key.
      * @param mixed $value The value to be stored.
      * @param int $ttl The time to live, in seconds.
-     * @return True if successful, false otherwise.
+     * @return bool True if successful, false otherwise.
      */
     public function set($key, $value, $ttl = false)
     {
@@ -185,7 +185,7 @@ class SQLCache implements Cache
      *
      * @param string $method The method name to for which this statement applies.
      * @param string $sql The SQL statement associated with the given method.
-     * @return &PDOStatement
+     * @return \PDOStatement Returns the prepared statement for the given method.
      */
     private function getStatement($method, $sql)
     {

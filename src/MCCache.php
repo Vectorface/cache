@@ -61,9 +61,9 @@ class MCCache implements Cache
      * @param int $ttl The time to live, in seconds. The time before the object should expire.
      * @return bool True if successful, false otherwise.
      */
-    public function set($entry, $value, $ttl = false)
+    public function set($key, $value, $ttl = false)
     {
-        return $this->mc->set($entry, $value, null, (int)$ttl);
+        return $this->mc->set($key, $value, null, (int)$ttl);
     }
 
     /**
