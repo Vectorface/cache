@@ -17,7 +17,7 @@ class SQLCacheTest extends GenericCacheTest
         } catch (\PDOException $e) {
             $this->markTestSkipped("Please ensure that the pdo_sqlite module is installed and configured");
         }
-        MySQLite::createFunctions($this->pdo);
+        $this->pdo->sqliteCreateFunction('UNIX_TIMESTAMP', 'time', 0);
         $this->createTable();
 
         $this->cache = new SQLCache($this->pdo);
