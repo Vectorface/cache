@@ -9,7 +9,8 @@ class APCCacheTest extends GenericCacheTest
 {
     public function setUp()
     {
-        if (PHP_SAPI == 'cli' && ini_get('apc.enable_cli') !== '1') {
+        $apc = extension_loaded('apc') || extension_loaded('apcu');
+        if (!$apc || (PHP_SAPI == 'cli' && ini_get('apc.enable_cli') !== '1')) {
             require_once __DIR__ . '/Helpers/fakeapc.php';
         }
         $this->cache = new APCCache();

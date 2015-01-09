@@ -31,16 +31,6 @@ class APCCache implements Cache
     private static $apcModule = 'apc';
 
     /**
-     * Create an instance of the APC cache.
-     */
-    public function __construct()
-    {
-        if (!function_exists('apc_fetch') && !extension_loaded(self::$apcModule)) {
-            throw new \Exception('Unable to initialize APCCache: APC extension not loaded.');
-        }
-    }
-
-    /**
      * Attempt to retrieve an entry from the cache.
      *
      * @return mixed Returns the value stored for the given key, or false on failure.
