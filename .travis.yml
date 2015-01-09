@@ -7,4 +7,5 @@ php:
   - hhvm
 
 before_script:
+  - composer update
   - composer install
