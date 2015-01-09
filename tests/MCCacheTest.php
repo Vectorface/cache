@@ -10,7 +10,7 @@ class MCCacheTest extends GenericCacheTest
     protected function setUp()
     {
         if (!class_exists("Memcache", false)) {
-            $this->markTestSkipped("Please ensure that memcache.so is installed and configured");
+            class_alias("Vectorface\Tests\Cache\Helpers\Memcache", "Memcache");
         }
         $this->cache = new MCCache(new FakeMemcache());
     }
