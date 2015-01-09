@@ -23,14 +23,7 @@ class TempFileCache implements Cache
      */
     public function __construct($directory = null, $extension = '.tempcache')
     {
-        if (empty($directory) || !is_string($directory)) {
-            $classParts = explode("\\", get_called_class());
-            $this->directory = sys_get_temp_dir()  . '/' . end($classParts);
-        } elseif (strpos($directory, '/') !== 0) {
-            $this->directory = sys_get_temp_dir() . '/' . $directory;
-        } else {
-            $this->directory = $directory;
-        }
+        $this->directory = $this->getTempDir($directory);
 
         if (!file_exists($this->directory)) {
             if (!@mkdir($this->directory, 0700, true)) {
@@ -49,6 +42,24 @@ class TempFileCache implements Cache
     }
 
     /**
+     * Generate a consistent temporary directory based on a requested directory name.
+     *
+     * @param string $directory The name or path of a temporary directory.
+     * @return string The directory name, resolved to a full path.
+     */
+    private function getTempDir($directory)
+    {
+        if (empty($directory) || !is_string($directory)) {
+            $classParts = explode("\\", get_called_class());
+            return sys_get_temp_dir()  . '/' . end($classParts);
+        } elseif (strpos($directory, '/') !== 0) {
+            return sys_get_temp_dir() . '/' . $directory;
+        } else {
+            return $directory;
+        }
+    }
+
+    /*y
      * Fetch a cache entry by key.
      *
      * @param String $key The key for the entry to fetch
