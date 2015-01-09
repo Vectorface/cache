@@ -35,7 +35,7 @@ class APCCache implements Cache
      */
     public function __construct()
     {
-        if (!extension_loaded(static::$apcModule)) {
+        if (!function_exists('apc_fetch') && !extension_loaded(self::$apcModule)) {
             throw new \Exception('Unable to initialize APCCache: APC extension not loaded.');
         }
     }
