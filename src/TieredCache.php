@@ -83,11 +83,10 @@ class TieredCache implements Cache
      */
     public function set($entry, $value, $ttl = false)
     {
-        $result = false;
-        foreach ($this->caches as $cache) {
-            $result = $result || $cache->set($entry, $value, $ttl);
-        }
-        return $result;
+        $setCallback = function ($setSuccess, $cache) use ($entry, $value, $ttl) {
+            return $setSuccess || $cache->set($entry, $value, $ttl);
+        };
+        return array_reduce($this->caches, $setCallback, false);
     }
 
     /**
@@ -98,11 +97,10 @@ class TieredCache implements Cache
      */
     public function delete($key)
     {
-        $result = false;
-        foreach ($this->caches as $cache) {
-            $result = $result && $cache->delete($key);
-        }
-        return $result;
+        $deleteCallback = function ($allDeleted, $cache) use ($key) {
+            return $allDeleted && $cache->delete($key);
+        };
+        return array_reduce($this->caches, $deleteCallback, true);
     }
 
     /**
@@ -112,11 +110,10 @@ class TieredCache implements Cache
      */
     public function clean()
     {
-        $result = true;
-        foreach ($this->caches as $cache) {
-            $result = $result && $cache->clean();
-        }
-        return $result;
+        $cleanCallback = function ($allCleaned, $cache) {
+            return $allCleaned && $cache->clean();
+        };
+        return array_reduce($this->caches, $cleanCallback, true);
     }
 
     /**
@@ -126,10 +123,9 @@ class TieredCache implements Cache
      */
     public function flush()
     {
-        $result = true;
-        foreach ($this->caches as $cache) {
-            $result = $result && $cache->flush();
-        }
-        return $result;
+        $flushCallback = function ($allFlushed, $cache) {
+            return $allFlushed && $cache->flush();
+        };
+        return array_reduce($this->caches, $flushCallback, true);
     }
 }
