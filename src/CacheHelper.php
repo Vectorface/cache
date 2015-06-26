@@ -32,13 +32,10 @@ class CacheHelper
 
         $item = $cache->get($key);
         if ($item === false) {
-            if (is_array($args)) {
-                $item = call_user_func_array($callback, $args);
-            } elseif (isset($args)) {
-                $item = call_user_func($callback, $args);
-            } else {
-                $item = call_user_func($callback);
+            if (!is_array($args)) {
+                $args = isset($args) ? array($args) : array();
             }
+            $item = call_user_func_array($callback, $args);
 
             if (isset($item)) {
                 $cache->set($key, $item, $ttl);
