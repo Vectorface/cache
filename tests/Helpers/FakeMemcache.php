@@ -100,14 +100,7 @@ class FakeMemcache extends \Memcache
      */
     public function decrement($key, $value = 1)
     {
-        $old = $this->get($key);
-        if ($old === false) {
-            return false;
-        } elseif (!is_numeric($old)) {
-            $old = 0;
-        }
-
-        return $this->set($key, $old - $value) ? $this->get($key) : false;
+        $this->increment($key, $value * -1);
     }
 
     /**
