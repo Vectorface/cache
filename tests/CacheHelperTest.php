@@ -12,15 +12,15 @@ class CacheHelperTest extends \PHPUnit\Framework\TestCase
     {
         /* A callback that returns "foo" only the first time. */
         $value = 'foo';
-        $callback = function() use(&$value) {
+        $callback = function() use (&$value) {
             $once = $value;
             $value = null;
             return $once;
         };
 
         $cache = new PHPCache();
-        $this->assertEquals('foo', CacheHelper::fetch($cache, 'bar', $callback, array(), 300));
-        $this->assertEquals('foo', CacheHelper::fetch($cache, 'bar', $callback, array(), 300));
+        $this->assertEquals('foo', CacheHelper::fetch($cache, 'bar', $callback, [], 300));
+        $this->assertEquals('foo', CacheHelper::fetch($cache, 'bar', $callback, [], 300));
         $this->assertNull($callback());
         $this->assertNull($value);
 
@@ -29,9 +29,9 @@ class CacheHelperTest extends \PHPUnit\Framework\TestCase
             return func_get_args();
         };
 
-        $this->assertEquals(array(), CacheHelper::fetch($cache, 'a1', $callback, null, 300));
-        $this->assertEquals(array(1, 2, 3), CacheHelper::fetch($cache, 'a2', $callback, array(1, 2, 3), 300));
-        $this->assertEquals(array(1), CacheHelper::fetch($cache, 'a3', $callback, 1, 300));
+        $this->assertEquals([], CacheHelper::fetch($cache, 'a1', $callback, null, 300));
+        $this->assertEquals([1, 2, 3], CacheHelper::fetch($cache, 'a2', $callback, [1, 2, 3], 300));
+        $this->assertEquals([1], CacheHelper::fetch($cache, 'a3', $callback, 1, 300));
     }
 
     /**
@@ -39,6 +39,7 @@ class CacheHelperTest extends \PHPUnit\Framework\TestCase
      */
     public function testBadThings()
     {
-        CacheHelper::fetch(new PHPCache(), $this, function() {}, array(), 300);
+        CacheHelper::fetch(new PHPCache(), $this, function() {
+        }, [], 300);
     }
 }

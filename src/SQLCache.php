@@ -73,7 +73,7 @@ class SQLCache implements Cache
      *
      * @var \PDOStatement
      */
-    private $statements = array();
+    private $statements = [];
 
     /**
      * Create an instance of the SQL cache.
@@ -97,7 +97,7 @@ class SQLCache implements Cache
     {
         try {
             $stmt = $this->getStatement(__METHOD__, self::GET_SQL);
-            $stmt->execute(array($key));
+            $stmt->execute([$key]);
         } catch (\PDOException $e) {
             return false;
         }
@@ -122,13 +122,13 @@ class SQLCache implements Cache
 
         try {
             $stmt = $this->getStatement(__METHOD__ . ".insert", self::SET_SQL);
-            return $stmt->execute(array($key, $value, $ttl));
+            return $stmt->execute([$key, $value, $ttl]);
         } catch (\PDOException $e) {
         } // fall through to attempt update
 
         try {
             $stmt = $this->getStatement(__METHOD__ . ".update", self::UPDATE_SQL);
-            return $stmt->execute(array($value, $ttl, $key));
+            return $stmt->execute([$value, $ttl, $key]);
         } catch (\PDOException $e) {
             return false;
         }
@@ -143,7 +143,7 @@ class SQLCache implements Cache
     {
         try {
             $stmt = $this->getStatement(__METHOD__, self::DELETE_SQL);
-            return $stmt->execute(array($key));
+            return $stmt->execute([$key]);
         } catch (\PDOException $e) {
             return false;
         }

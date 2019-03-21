@@ -97,7 +97,7 @@ class TempFileCache implements Cache
      */
     public function set($key, $value, $ttl = false)
     {
-        $data = array($ttl ? microtime(true) + $ttl : false, $value);
+        $data = [$ttl ? microtime(true) + $ttl : false, $value];
         return @file_put_contents($this->makePath($key), serialize($data)) !== false;
     }
 
@@ -171,7 +171,7 @@ class TempFileCache implements Cache
         }
 
         $negExtLen = -1 * strlen($this->extension);
-        $return = array();
+        $return = [];
         foreach ($files as $file) {
             if (substr($file, $negExtLen) === $this->extension) {
                 $return[] = $this->directory . '/' . $file;

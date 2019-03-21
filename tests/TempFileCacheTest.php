@@ -37,7 +37,7 @@ class TempFileCacheTest extends GenericCacheTest
         $this->assertFalse($this->cache->flush());
 
         /* Try all sorts of wacky stuff in the constructor */
-        foreach (array('/', '/etc/passwd', '/foo/bar/baz/thisdirshouldntexist') as $dir) {
+        foreach (['/', '/etc/passwd', '/foo/bar/baz/thisdirshouldntexist'] as $dir) {
             try {
                 new TempFileCache($dir);
                 $this->fail('TempFileCache should not have been able to initialize');

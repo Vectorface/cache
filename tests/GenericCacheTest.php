@@ -64,7 +64,7 @@ abstract class GenericCacheTest extends \PHPUnit\Framework\TestCase
     {
         foreach ($this->getCaches() as $cache) {
             $cache->set($key, $data, $ttl);
-            $cache->set($key."2", $data, $ttl+50000);
+            $cache->set($key."2", $data, $ttl + 50000);
             $cache->flush();
 
             $this->assertNull($cache->get($key));
@@ -74,27 +74,27 @@ abstract class GenericCacheTest extends \PHPUnit\Framework\TestCase
 
     public function cacheDataProvider()
     {
-        return array(
-            array(
+        return [
+            [
                 "testKey1",
                 "testData1",
-                50*60
-            ),
-            array(
+                50 * 60
+            ],
+            [
                 "AnotherKey",
                 "Here is some more data that I would like to test with",
                 3000
-            ),
-            array(
+            ],
+            [
                 "IntData",
                 17,
                 3000
-            ),
-        );
+            ],
+        ];
     }
 
     protected function getCaches()
     {
-        return is_array($this->cache) ? $this->cache : array($this->cache);
+        return is_array($this->cache) ? $this->cache : [$this->cache];
     }
 }

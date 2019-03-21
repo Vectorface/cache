@@ -19,7 +19,7 @@ class PHPCache implements Cache
      *
      * @var mixed[]
      */
-    protected $cache = array();
+    protected $cache = [];
 
     /**
      * Fetch a cache entry by key.
@@ -51,10 +51,10 @@ class PHPCache implements Cache
     public function set($key, $value, $ttl = false)
     {
         /* Cache gets a microtime expiry date. */
-        $this->cache[$key] = array(
+        $this->cache[$key] = [
             $ttl ? ((int)$ttl + microtime(true)) : false,
             $value
-        );
+        ];
         return true;
     }
 
@@ -93,7 +93,7 @@ class PHPCache implements Cache
      */
     public function flush()
     {
-        $this->cache = array();
+        $this->cache = [];
         return true;
     }
 }

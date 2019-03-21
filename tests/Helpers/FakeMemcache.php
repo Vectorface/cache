@@ -12,7 +12,7 @@ class FakeMemcache extends \Memcache
      *
      * @var mixed[]
      */
-    public static $cache = array();
+    public static $cache = [];
 
     /**
      * A flag to indicate that this class should act as if all operations fail.
@@ -57,7 +57,7 @@ class FakeMemcache extends \Memcache
      */
     public function flush()
     {
-        static::$cache = array();
+        static::$cache = [];
         return self::$broken ? false : true;
     }
 

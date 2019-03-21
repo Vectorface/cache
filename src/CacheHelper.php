@@ -58,7 +58,7 @@ class CacheHelper
     protected static function runCallback($callback, $args)
     {
         if (!is_array($args)) {
-            $args = isset($args) ? array($args) : array();
+            $args = isset($args) ? [$args] : [];
         }
         return call_user_func_array($callback, $args);
     }

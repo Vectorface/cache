@@ -28,7 +28,7 @@ class TieredCache implements Cache
      *
      * @var Cache[]
      */
-    private $caches = array();
+    private $caches = [];
 
     /**
      * Create a cache that layers caches on top of each other.
@@ -82,7 +82,7 @@ class TieredCache implements Cache
      */
     public function set($entry, $value, $ttl = false)
     {
-        $setCallback = function ($setSuccess, $cache) use ($entry, $value, $ttl) {
+        $setCallback = function($setSuccess, $cache) use ($entry, $value, $ttl) {
             return $setSuccess || $cache->set($entry, $value, $ttl);
         };
         return array_reduce($this->caches, $setCallback, false);
@@ -96,7 +96,7 @@ class TieredCache implements Cache
      */
     public function delete($key)
     {
-        $deleteCallback = function ($allDeleted, $cache) use ($key) {
+        $deleteCallback = function($allDeleted, $cache) use ($key) {
             return $allDeleted && $cache->delete($key);
         };
         return array_reduce($this->caches, $deleteCallback, true);
@@ -109,7 +109,7 @@ class TieredCache implements Cache
      */
     public function clean()
     {
-        $cleanCallback = function ($allCleaned, $cache) {
+        $cleanCallback = function($allCleaned, $cache) {
             return $allCleaned && $cache->clean();
         };
         return array_reduce($this->caches, $cleanCallback, true);
@@ -122,7 +122,7 @@ class TieredCache implements Cache
      */
     public function flush()
     {
-        $flushCallback = function ($allFlushed, $cache) {
+        $flushCallback = function($allFlushed, $cache) {
             return $allFlushed && $cache->flush();
         };
         return array_reduce($this->caches, $flushCallback, true);
