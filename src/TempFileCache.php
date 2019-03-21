@@ -63,24 +63,25 @@ class TempFileCache implements Cache
      * Fetch a cache entry by key.
      *
      * @param String $key The key for the entry to fetch
+     * @param mixed $default Default value to return if the key does not exist.
      * @return mixed The value stored in the cache for $key, or false on failure
      */
-    public function get($key)
+    public function get($key, $default = null)
     {
         $file = $this->makePath($key);
         if (!($data = @file_get_contents($file))) {
-            return false;
+            return $default;
         }
 
         if (!($data = @unserialize($data))) {
             $this->delete($key); /* Delete corrupted. */
-            return false;
+            return $default;
         }
 
         list($expiry, $value) = $data;
         if ($expiry !== false && ($expiry < microtime(true))) {
             $this->delete($key);
-            return false;
+            return $default;
         }
 
         return $value;

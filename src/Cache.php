@@ -13,9 +13,10 @@ interface Cache
      * Fetch a cache entry by key.
      *
      * @param String $key The key for the entry to fetch
+     * @param mixed  $default Default value to return if the key does not exist.
      * @return mixed The value stored in the cache for $key
      */
-    public function get($key);
+    public function get($key, $default = null);
 
     /**
      * Set an entry in the cache.

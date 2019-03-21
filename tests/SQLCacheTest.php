@@ -40,11 +40,11 @@ class SQLCacheTest extends GenericCacheTest
         $this->assertTrue($this->cache->set('foo', 'bar'));
         $this->assertEquals('bar', $this->cache->get('foo'));
         $this->assertTrue($this->cache->delete('foo'));
-        $this->assertFalse($this->cache->get('foo'));
+        $this->assertNull($this->cache->get('foo'));
         $this->assertTrue($this->cache->clean());
         $this->assertTrue($this->cache->set('foo', 'bar'));
         $this->assertTrue($this->cache->flush());
-        $this->assertFalse($this->cache->get('foo'));
+        $this->assertNull($this->cache->get('foo'));
 
         /* Make 'em fail afterwards. */
         $this->pdo->exec('DROP TABLE cache');

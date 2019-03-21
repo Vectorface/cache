@@ -28,16 +28,18 @@ class APCCache implements Cache
      *
      * @var string
      */
-    private static $apcModule = 'apc';
+    private $apcModule = 'apcu';
 
     /**
      * Attempt to retrieve an entry from the cache.
      *
+     * @param mixed  $default Default value to return if the key does not exist.
      * @return mixed Returns the value stored for the given key, or false on failure.
      */
-    public function get($key)
+    public function get($key, $default = null)
     {
-        return apc_fetch($key);
+        $value = $this->call('fetch', $key);
+        return ($value === false) ? $default : $value;
     }
 
     /**
@@ -50,7 +52,7 @@ class APCCache implements Cache
      */
     public function set($key, $value, $ttl = false)
     {
-        return apc_store($key, $value, (int)$ttl);
+        return $this->call('store', $key, $value, (int)$ttl);
     }
 
     /**
@@ -61,7 +63,7 @@ class APCCache implements Cache
      */
     public function delete($key)
     {
-        return apc_delete($key);
+        return $this->call('delete', $key);
     }
 
     /*
@@ -81,7 +83,13 @@ class APCCache implements Cache
      */
     public function flush()
     {
-        /* PHP 5.5+ uses "APCu", which takes no argument. 5.4 and under need to clear the "user" cache. */
-        return (PHP_VERSION_ID >= 50500)? apc_clear_cache() : apc_clear_cache('user');
+        return $this->call('clear_cache');
+    }
+
+    private function call($call, ...$args)
+    {
+        $function = "{$this->apcModule}_{$call}";
+
+        return $function(...$args);
     }
 }

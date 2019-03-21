@@ -26,7 +26,7 @@ class FakeMemcache extends \Memcache
      *
      * @see http://php.net/manual/en/memcache.get.php
      */
-    public function get($key, &$flags = null)
+    public function get($key, &$flags = null, &$unused = null)
     {
         if (self::$broken) {
             return false;

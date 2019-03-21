@@ -25,7 +25,7 @@ class TempFileCacheTest extends GenericCacheTest
         $files = glob(sys_get_temp_dir() . "/TempFileCache/*.tempcache");
         $this->assertNotEmpty($files);
         file_put_contents(current($files), "***this is not unserializable!***");
-        $this->assertFalse($this->cache->get('foo')); // corrupted.
+        $this->assertNull($this->cache->get('foo')); // corrupted.
 
         /* Remove the cache directory entirely. */
         $this->cache->flush();
@@ -66,6 +66,6 @@ class TempFileCacheTest extends GenericCacheTest
         $this->assertEquals('bar', $this->cache->get('foo'));
 
         $this->assertTrue($this->cache->set('foo', 'bar', -1));
-        $this->assertFalse($this->cache->get('foo'));
+        $this->assertNull($this->cache->get('foo'));
     }
 }

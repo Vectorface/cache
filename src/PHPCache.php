@@ -25,9 +25,10 @@ class PHPCache implements Cache
      * Fetch a cache entry by key.
      *
      * @param String $key The key for the entry to fetch
+     * @param mixed $default Default value to return if the key does not exist.
      * @return mixed The value stored in the cache for $key
      */
-    public function get($key)
+    public function get($key, $default = null)
     {
         if (isset($this->cache[$key])) {
             list($expires, $value) = $this->cache[$key];
@@ -36,7 +37,7 @@ class PHPCache implements Cache
             }
             unset($this->cache[$key]);
         }
-        return false;
+        return $default;
     }
 
     /**

@@ -90,9 +90,10 @@ class SQLCache implements Cache
      *
      * The value will be unserialized before it is returned.
      *
+     * @param mixed  $default Default value to return if the key does not exist.
      * @return mixed Returns the value stored for the given key, or false on failure.
      */
-    public function get($key)
+    public function get($key, $default = null)
     {
         try {
             $stmt = $this->getStatement(__METHOD__, self::GET_SQL);
@@ -101,7 +102,7 @@ class SQLCache implements Cache
             return false;
         }
         $result = $stmt->fetchColumn();
-        return empty($result) ? false : unserialize($result);
+        return empty($result) ? $default : unserialize($result);
     }
 
     /**

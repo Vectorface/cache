@@ -6,7 +6,7 @@ use Vectorface\Cache\Cache;
 use Vectorface\Cache\PHPCache;
 use Vectorface\Cache\CacheHelper;
 
-class CacheHelperTest extends \PHPUnit_Framework_TestCase
+class CacheHelperTest extends \PHPUnit\Framework\TestCase
 {
     public function testCacheHelper()
     {
@@ -34,14 +34,11 @@ class CacheHelperTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(array(1), CacheHelper::fetch($cache, 'a3', $callback, 1, 300));
     }
 
+    /**
+     * @expectedException \InvalidArgumentException
+     */
     public function testBadThings()
     {
-        try {
-            $emptyFunc = function() {
-            };
-            CacheHelper::fetch(new PHPCache(), $this, $emptyFunc, array(), 300);
-            $this->fail('An invalid key should trigger an exception');
-        } catch (\Exception $e) {
-        } // Expected
+        CacheHelper::fetch(new PHPCache(), $this, function() {}, array(), 300);
     }
 }

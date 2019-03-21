@@ -5,7 +5,7 @@ namespace Vectorface\Tests\Cache;
 use Vectorface\Cache\Cache;
 use Vectorface\Cache\NullCache;
 
-class NullCacheTest extends \PHPUnit_Framework_TestCase
+class NullCacheTest extends \PHPUnit\Framework\TestCase
 {
     public function testNullCache()
     {

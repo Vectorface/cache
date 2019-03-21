@@ -34,11 +34,11 @@ class CacheHelper
     public static function fetch(Cache $cache, $key, $callback, $args, $ttl = 300)
     {
         if (!(is_string($key))) {
-            throw new \Exception('Cache key must be a string');
+            throw new \InvalidArgumentException('Cache key must be a string');
         }
 
         $item = $cache->get($key);
-        if ($item === false) {
+        if ($item === null) {
             $item = static::runCallback($callback, $args);
 
             if (isset($item)) {

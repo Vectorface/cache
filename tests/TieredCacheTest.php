@@ -7,7 +7,7 @@ use Vectorface\Cache\NullCache;
 use Vectorface\Cache\PHPCache;
 use Vectorface\Cache\TieredCache;
 
-class TieredCacheTest extends \PHPUnit_Framework_TestCase
+class TieredCacheTest extends \PHPUnit\Framework\TestCase
 {
     public function testTieredCache()
     {
@@ -15,7 +15,7 @@ class TieredCacheTest extends \PHPUnit_Framework_TestCase
         $php = new PHPCache();
         $tiered = new TieredCache($null, $php);
 
-        $this->assertFalse($tiered->get('foo'));
+        $this->assertNull($tiered->get('foo')); // Default is null
         $this->assertTrue($tiered->set('foo', 'bar'));
         $this->assertEquals('bar', $tiered->get('foo'));
         $this->assertFalse($tiered->delete('foo')); // one op failed, so all fail.

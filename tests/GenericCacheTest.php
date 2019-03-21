@@ -4,7 +4,7 @@ namespace Vectorface\Tests\Cache;
 
 use Vectorface\Cache\Cache;
 
-abstract class GenericCacheTest extends \PHPUnit_Framework_TestCase
+abstract class GenericCacheTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * The cache entry to be set by child classes.
@@ -32,7 +32,7 @@ abstract class GenericCacheTest extends \PHPUnit_Framework_TestCase
             $cache->set($key, $data . $data, $ttl); /* Overwrite */
             $this->assertEquals($data . $data, $cache->get($key));
 
-            $this->assertFalse($cache->get($key . ".unrelated"));
+            $this->assertNull($cache->get($key . ".unrelated"));
         }
     }
 
@@ -44,7 +44,7 @@ abstract class GenericCacheTest extends \PHPUnit_Framework_TestCase
         foreach ($this->getCaches() as $cache) {
             $cache->set($key, $data, $ttl);
             $cache->delete($key);
-            $this->assertFalse($cache->get($key));
+            $this->assertNull($cache->get($key));
         }
     }
 
@@ -67,8 +67,8 @@ abstract class GenericCacheTest extends \PHPUnit_Framework_TestCase
             $cache->set($key."2", $data, $ttl+50000);
             $cache->flush();
 
-            $this->assertFalse($cache->get($key));
-            $this->assertFalse($cache->get($key . ".unrelated"));
+            $this->assertNull($cache->get($key));
+            $this->assertNull($cache->get($key . ".unrelated"));
         }
     }
 

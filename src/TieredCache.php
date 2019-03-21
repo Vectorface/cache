@@ -58,19 +58,18 @@ class TieredCache implements Cache
      * Get an entry from the first cache that can provide a value.
      *
      * @param string $entry The cache key.
+     * @param mixed $default Default value to return if the key does not exist.
      * @return mixed The cached value, or FALSE if not found.
      */
-    public function get($entry)
+    public function get($entry, $default = null)
     {
-        $value = false;
-
         foreach ($this->caches as $cache) {
             $value = $cache->get($entry);
-            if ($value !== false) {
+            if ($value) {
                 return $value;
             }
         }
-        return $value;
+        return $default;
     }
 
     /**

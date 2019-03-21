@@ -11,9 +11,10 @@ class NullCache implements Cache
      * Fetch a cache entry by key.
      *
      * @param String $key The key for the entry to fetch
+     * @param mixed  $default Default value to return if the key does not exist.
      * @return mixed The value stored in the cache for $key, or false on failure.
      */
-    public function get($key)
+    public function get($key, $default = null)
     {
         return false;
     }

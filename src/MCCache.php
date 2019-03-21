@@ -46,11 +46,13 @@ class MCCache implements Cache
      * Retrieve a cache entry by key
      *
      * @param string $key The cache key.
+     * @param mixed  $default Default value to return if the key does not exist.
      * @return mixed The value stored for the given key, or false on failure.
      */
-    public function get($key)
+    public function get($key, $default = null)
     {
-        return $this->mc->get($key);
+        $return = $this->mc->get($key);
+        return ($return === false) ? $default : $return;
     }
 
     /**

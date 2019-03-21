@@ -9,12 +9,10 @@ class APCCacheTest extends GenericCacheTest
 {
     public function setUp()
     {
-        $apc = extension_loaded('apc') || extension_loaded('apcu');
-        if (!$apc || (PHP_SAPI == 'cli' && ini_get('apc.enable_cli') !== '1')) {
-            require_once __DIR__ . '/Helpers/fakeapc.php';
+        if (!extension_loaded('apcu') || (ini_get('apc.enable_cli') !== '1')) {
+            $this->markTestSkipped("APCu module not loaded, or not enabled");
         }
         $this->cache = new APCCache();
-
     }
 
     public function testModuleNotAvailable()
@@ -22,13 +20,13 @@ class APCCacheTest extends GenericCacheTest
         $cls = new \ReflectionClass('Vectorface\\Cache\\APCCache');
         $prop = $cls->getProperty('apcModule');
         $prop->setAccessible(true);
-        $orig = $prop->getValue();
-        $prop->setValue(null, 'invalidmodulename');
         try {
             $cache = new APCCache();
+            $orig = $prop->getValue($cache);
+            $prop->setValue($cache, 'invalidmodulename');
             $this->fail('The invalidated module name should prevent using this cache.');
         } catch (\Exception $e) {
         } // Expected.
-        $prop->setValue(null, $orig);
+        $prop->setValue($cache, $orig);
     }
 }
