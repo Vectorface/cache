@@ -7,7 +7,7 @@ use Vectorface\Cache\APCCache;
 
 class APCCacheTest extends GenericCacheTest
 {
-    public function setUp()
+    protected function setUp()
     {
         $apc = extension_loaded('apc') || extension_loaded('apcu');
         if (!$apc || (PHP_SAPI == 'cli' && ini_get('apc.enable_cli') !== '1')) {

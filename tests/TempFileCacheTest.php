@@ -7,12 +7,12 @@ use Vectorface\Cache\TempFileCache;
 
 class TempFileCacheTest extends GenericCacheTest
 {
-    public function setUp()
+    protected function setUp()
     {
         $this->cache = new TempFileCache();
     }
 
-    public function tearDown()
+    protected function tearDown()
     {
         $this->cache->destroy();
     }

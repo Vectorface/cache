@@ -6,8 +6,9 @@ use Vectorface\Cache\Cache;
 use Vectorface\Cache\NullCache;
 use Vectorface\Cache\PHPCache;
 use Vectorface\Cache\TieredCache;
+use PHPUnit\Framework\TestCase;
 
-class TieredCacheTest extends \PHPUnit_Framework_TestCase
+class TieredCacheTest extends TestCase
 {
     public function testTieredCache()
     {

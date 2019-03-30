@@ -5,8 +5,9 @@ namespace Vectorface\Tests\Cache;
 use Vectorface\Cache\Cache;
 use Vectorface\Cache\PHPCache;
 use Vectorface\Cache\CacheHelper;
+use PHPUnit\Framework\TestCase;
 
-class CacheHelperTest extends \PHPUnit_Framework_TestCase
+class CacheHelperTest extends TestCase
 {
     public function testCacheHelper()
     {

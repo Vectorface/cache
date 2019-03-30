@@ -3,8 +3,9 @@
 namespace Vectorface\Tests\Cache;
 
 use Vectorface\Cache\Cache;
+use PHPUnit\Framework\TestCase;
 
-abstract class GenericCacheTest extends \PHPUnit_Framework_TestCase
+abstract class GenericCacheTest extends TestCase
 {
     /**
      * The cache entry to be set by child classes.

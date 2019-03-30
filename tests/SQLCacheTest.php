@@ -10,7 +10,7 @@ class SQLCacheTest extends GenericCacheTest
 {
     private $pdo;
 
-    public function setUp()
+    protected function setUp()
     {
         try {
             $this->pdo = new \PDO('sqlite::memory:', null, null, array(\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION));
