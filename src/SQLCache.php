@@ -32,6 +32,11 @@ namespace Vectorface\Cache;
 class SQLCache implements Cache
 {
     /**
+     * Hash keys beyond this size
+     */
+    const MAX_KEY_LEN = 64;
+
+    /**
      * Statement for flushing all entries from the cache.
      */
     const FLUSH_SQL = 'DELETE FROM cache';
@@ -95,6 +100,8 @@ class SQLCache implements Cache
      */
     public function get($key, $default = null)
     {
+        $key = (strlen($key) > self::MAX_KEY_LEN) ? $this->hashKey($key) : $key;
+
         try {
             $stmt = $this->getStatement(__METHOD__, self::GET_SQL);
             $stmt->execute([$key]);
@@ -117,6 +124,7 @@ class SQLCache implements Cache
      */
     public function set($key, $value, $ttl = false)
     {
+        $key = (strlen($key) > self::MAX_KEY_LEN) ? $this->hashKey($key) : $key;
         $ttl = $ttl ? ($ttl + time()) : (pow(2, 32) - 1);
         $value = serialize($value);
 
@@ -141,6 +149,8 @@ class SQLCache implements Cache
      */
     public function delete($key)
     {
+        $key = (strlen($key) > self::MAX_KEY_LEN) ? $this->hashKey($key) : $key;
+
         try {
             $stmt = $this->getStatement(__METHOD__, self::DELETE_SQL);
             return $stmt->execute([$key]);
@@ -194,5 +204,16 @@ class SQLCache implements Cache
             $this->statements[$method] = $this->conn->prepare($sql);
         }
         return $this->statements[$method];
+    }
+
+    /**
+     * Get a unique hash key; Used when the key is too long
+     * @param string $key
+     * @return string The hash of the key parameter
+     * @private Public for testing
+     */
+    public static function hashKey($key)
+    {
+        return hash('sha256', $key);
     }
 }

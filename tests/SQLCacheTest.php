@@ -55,6 +55,24 @@ class SQLCacheTest extends GenericCacheTest
         $this->assertFalse($this->cache->flush());
     }
 
+    public function testLongKey()
+    {
+        $key = str_repeat("a", 100);
+        $hash = $this->cache->hashKey($key);
+        $expected = "test:" . microtime(true) . mt_rand();
+
+        $this->cache->set($key, $expected);
+
+        $this->assertEquals(
+            serialize($expected),
+            $this->pdo->query("SELECT value FROM cache WHERE entry=\"$hash\"")->fetch(\PDO::FETCH_COLUMN)
+        );
+
+        $this->assertEquals($expected, $this->cache->get($key));
+        $this->assertTrue($this->cache->delete($key));
+        $this->assertEquals("default", $this->cache->get($key, "default"));
+    }
+
     /**
      * Create the "cache" table in SQLite.
      */
