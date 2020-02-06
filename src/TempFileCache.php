@@ -50,7 +50,7 @@ class TempFileCache implements Cache
     private function getTempDir($directory)
     {
         if (empty($directory) || !is_string($directory)) {
-            $classParts = explode("\\", get_called_class());
+            $classParts = explode("\\", static::class);
             return sys_get_temp_dir()  . '/' . end($classParts);
         } elseif (strpos($directory, '/') !== 0) {
             return sys_get_temp_dir() . '/' . $directory;
@@ -69,11 +69,13 @@ class TempFileCache implements Cache
     public function get($key, $default = null)
     {
         $file = $this->makePath($key);
-        if (!($data = @file_get_contents($file))) {
+        $data = @file_get_contents($file);
+        if (!$data) {
             return $default;
         }
 
-        if (!($data = @unserialize($data))) {
+        $data = @unserialize($data);
+        if (!$data) {
             $this->delete($key); /* Delete corrupted. */
             return $default;
         }
@@ -102,7 +104,7 @@ class TempFileCache implements Cache
     }
 
     /**
-     * Delete an entry in the cache by key regaurdless of TTL
+     * Delete an entry in the cache by key regardless of TTL
      *
      * @param string $key A key to delete from the cache.
      * @return bool True if the cache entry was successfully deleted, false otherwise.
@@ -162,7 +164,7 @@ class TempFileCache implements Cache
     /**
      * Finds all files with the cache extension in the cache directory
      *
-     * @return Array Returns an array of filenames that represent cached entries.
+     * @return array|false Returns an array of filenames that represent cached entries.
      */
     private function getCacheFiles()
     {

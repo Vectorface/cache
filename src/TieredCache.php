@@ -77,7 +77,7 @@ class TieredCache implements Cache
      *
      * @param string $entry The cache key.
      * @param mixed $value The value to be stored.
-     * @param int $ttl The time-to-live for the cache entry.
+     * @param int|false $ttl The time-to-live for the cache entry.
      * @return bool Returns true if saving succeeded to any cache in the stack.
      */
     public function set($entry, $value, $ttl = false)
