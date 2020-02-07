@@ -1,0 +1,97 @@
+<?php
+
+namespace Vectorface\Tests\Cache;
+
+use Vectorface\Cache\NullCache;
+use Vectorface\Cache\PHPCache;
+use Vectorface\Cache\LogDecorator;
+use Vectorface\Tests\Cache\Helpers\FakeLogger;
+
+class LogDecoratorTest extends \PHPUnit\Framework\TestCase
+{
+    /**
+     * @test
+     */
+    public function synopsis()
+    {
+        $cache = new PHPCache();
+        $logger = new FakeLogger();
+        $loggedCache = new LogDecorator($cache, $logger);
+
+        /*
+         * All cache methods pass through to their underlying cache, with some
+         * information about the cache operation logged to the logger
+         *
+         * The following are successes with the PHPCache
+         */
+        $result = $loggedCache->get("newKey", "dflt");
+        $this->assertEquals("dflt", $result);
+        $this->assertEquals("debug: get newKey MISS", $logger->getLastMessage());
+
+        $result = $loggedCache->set("testKey", "val", 123);
+        $this->assertEquals(true, $result);
+        $this->assertEquals("debug: set testKey SUCCESS ttl=123, type=string, size=3", $logger->getLastMessage());
+
+        $result = $loggedCache->get("testKey", "dflt");
+        $this->assertEquals("val", $result);
+        $this->assertEquals("debug: get testKey HIT size=3", $logger->getLastMessage());
+
+        $result = $loggedCache->delete("testKey");
+        $this->assertEquals(true, $result);
+        $this->assertEquals("debug: delete testKey SUCCESS", $logger->getLastMessage());
+
+        $result = $loggedCache->clean();
+        $this->assertEquals(true, $result);
+        $this->assertEquals("debug: clean SUCCESS", $logger->getLastMessage());
+
+        $result = $loggedCache->flush();
+        $this->assertEquals(true, $result);
+        $this->assertEquals("debug: flush SUCCESS", $logger->getLastMessage());
+    }
+
+    public function testFailures()
+    {
+        /* The following are failures with NullCache */
+        $cache = new NullCache();
+        $logger = new FakeLogger();
+        $loggedCache = new LogDecorator($cache, $logger);
+
+        $result = $loggedCache->get("newKey", "dflt");
+        $this->assertEquals("dflt", $result);
+        $this->assertEquals("debug: get newKey MISS", $logger->getLastMessage());
+
+        $result = $loggedCache->set("testKey", "val", 123);
+        $this->assertEquals(false, $result);
+        $this->assertEquals("debug: set testKey FAILURE ttl=123, type=string, size=3", $logger->getLastMessage());
+
+        $result = $loggedCache->get("testKey", "dflt");
+        $this->assertEquals("dflt", $result);
+        $this->assertEquals("debug: get testKey MISS", $logger->getLastMessage());
+
+        $result = $loggedCache->delete("testKey");
+        $this->assertEquals(false, $result);
+        $this->assertEquals("debug: delete testKey FAILURE", $logger->getLastMessage());
+
+        $result = $loggedCache->clean();
+        $this->assertEquals(false, $result);
+        $this->assertEquals("debug: clean FAILURE", $logger->getLastMessage());
+
+        $result = $loggedCache->flush();
+        $this->assertEquals(false, $result);
+        $this->assertEquals("debug: flush FAILURE", $logger->getLastMessage());
+    }
+
+    public function testLoggerNotPresent()
+    {
+        /* You can omit the logger, and it still operates as a pass-through cache */
+        $this->assertFalse((new LogDecorator(new NullCache()))->set("foo", "bar"));
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testInvalidLevel()
+    {
+        new LogDecorator(new NullCache(), null, "can't log this; na na na na, na na, na na!");
+    }
+}
