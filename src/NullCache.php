@@ -16,7 +16,7 @@ class NullCache implements Cache
      */
     public function get($key, $default = null)
     {
-        return false;
+        return $default;
     }
 
     /**

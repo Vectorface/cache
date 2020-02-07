@@ -10,7 +10,8 @@ class NullCacheTest extends \PHPUnit\Framework\TestCase
     public function testNullCache()
     {
         $cache = new NullCache();
-        $this->assertFalse($cache->get('foo'));
+        $this->assertNull($cache->get('foo'));
+        $this->assertEquals('dflt', $cache->get("foo", "dflt"));
         $this->assertFalse($cache->set('foo', 'bar'));
         $this->assertFalse($cache->delete('foo'));
         $this->assertFalse($cache->clean());
