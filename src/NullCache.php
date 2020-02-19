@@ -2,17 +2,15 @@
 
 namespace Vectorface\Cache;
 
+use Vectorface\Cache\Common\PSR16Util;
+
 /**
  * A cache that caches nothing and always fails.
  */
 class NullCache implements Cache
 {
     /**
-     * Fetch a cache entry by key.
-     *
-     * @param String $key The key for the entry to fetch
-     * @param mixed  $default Default value to return if the key does not exist.
-     * @return mixed The value stored in the cache for $key, or false on failure.
+     * @inheritDoc Vectorface\Cache\Cache
      */
     public function get($key, $default = null)
     {
@@ -20,23 +18,15 @@ class NullCache implements Cache
     }
 
     /**
-     * Set an entry in the cache.
-     *
-     * @param String $key The key/index for the cache entry
-     * @param mixed $value The item to store in the cache
-     * @param int $ttl The time to live (or expiry) of the cached item. Not all caches honor the TTL.
-     * @return bool True if successful, false otherwise.
+     * @inheritDoc Vectorface\Cache\Cache
      */
-    public function set($key, $value, $ttl = false)
+    public function set($key, $value, $ttl = null)
     {
         return false;
     }
 
     /**
-     * Remove an entry from the cache.
-     *
-     * @param String $key The key to be deleted (removed) from the cache.
-     * @return bool True if successful, false otherwise.
+     * @inheritDoc Vectorface\Cache\Cache
      */
     public function delete($key)
     {
@@ -44,9 +34,7 @@ class NullCache implements Cache
     }
 
     /**
-     * Manually clean out entries older than their TTL
-     *
-     * @return bool True if successful, false otherwise.
+     * @inheritDoc Vectorface\Cache\Cache
      */
     public function clean()
     {
@@ -54,11 +42,49 @@ class NullCache implements Cache
     }
 
     /**
-     * Clear the cache.
-     *
-     * @return bool True if successful, false otherwise.
+     * @inheritDoc Vectorface\Cache\Cache
      */
     public function flush()
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc Psr\SimpleCache\CacheInterface
+     */
+    public function clear()
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getMultiple($keys, $default = null)
+    {
+        return array_combine($keys, array_fill(0, count($keys), $default));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setMultiple($values, $ttl = null)
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function deleteMultiple($keys)
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function has($key)
     {
         return false;
     }

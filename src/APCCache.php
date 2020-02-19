@@ -2,6 +2,11 @@
 
 namespace Vectorface\Cache;
 
+use Psr\SimpleCache\CacheException;
+use Psr\SimpleCache\CacheInterface;
+use Vectorface\Cache\Common\PSR16Util;
+use Vectorface\Cache\Exception\InvalidArgumentException;
+
 /**
  * This cache is ridiculously fast, according to basic benchmarks:
  *
@@ -23,6 +28,8 @@ namespace Vectorface\Cache;
  */
 class APCCache implements Cache
 {
+    use PSR16Util;
+
     /**
      * The module name that defines the APC methods.
      *
@@ -31,28 +38,20 @@ class APCCache implements Cache
     private $apcModule = 'apcu';
 
     /**
-     * Attempt to retrieve an entry from the cache.
-     *
-     * @param mixed  $default Default value to return if the key does not exist.
-     * @return mixed Returns the value stored for the given key, or false on failure.
+     * @inheritDoc Vectorface\Cache\Cache
      */
     public function get($key, $default = null)
     {
-        $value = $this->call('fetch', $key);
+        $value = $this->call('fetch', $this->key($key));
         return ($value === false) ? $default : $value;
     }
 
     /**
-     * Place an entry in the cache, overwriting it if it already exists.
-     *
-     * @param string $key The cache key.
-     * @param mixed $value The value to be stored.
-     * @param int $ttl The time to live, in seconds.
-     * @return True if successful, false otherwise.
+     * @inheritDoc Vectorface\Cache\Cache
      */
-    public function set($key, $value, $ttl = false)
+    public function set($key, $value, $ttl = null)
     {
-        return $this->call('store', $key, $value, (int)$ttl);
+        return $this->call('store', $this->key($key), $value, $this->ttl($ttl));
     }
 
     /**
@@ -63,7 +62,7 @@ class APCCache implements Cache
      */
     public function delete($key)
     {
-        return $this->call('delete', $key);
+        return $this->call('delete', $this->key($key));
     }
 
     /*
@@ -86,6 +85,68 @@ class APCCache implements Cache
         return $this->call('clear_cache');
     }
 
+    /**
+     * @inheritDoc Psr\SimpleCache\CacheInterface
+     */
+    public function clear()
+    {
+        return $this->flush();
+    }
+
+    /**
+     * @inheritDoc Psr\SimpleCache\CacheInterface
+     */
+    public function getMultiple($keys, $default = null)
+    {
+        $keys = $this->keys($keys);
+        return $this->defaults(
+            $keys,
+            $this->call('fetch', $keys),
+            $default
+        );
+    }
+
+    /**
+     * @inheritDoc Psr\SimpleCache\CacheInterface
+     */
+    public function setMultiple($values, $ttl = null)
+    {
+        $results = $this->call(
+            'store',
+            $this->values($values),
+            null,
+            $this->ttl($ttl)
+        );
+        return array_reduce($results, function($carry, $item) { return $carry && $item; }, true);
+    }
+
+    /**
+     * @inheritDoc Psr\SimpleCache\CacheInterface
+     */
+    public function deleteMultiple($keys)
+    {
+        $success = true;
+        foreach ($this->keys($keys) as $key) {
+            $success = $this->call('delete', $key) && $success;
+        }
+
+        return $success;
+    }
+
+    /**
+     * @inheritDoc Psr\SimpleCache\CacheInterface
+     */
+    public function has($key)
+    {
+        return $this->call('exists', $this->key($key));
+    }
+
+    /**
+     * Pass a call through to APC or APCu
+     * @param string $call Transformed to a function apc(u)_$call
+     * @param mixed ...$args Function arguments
+     * @return mixed The result passed through from apc(u)_$call
+     */
     private function call($call, ...$args)
     {
         $function = "{$this->apcModule}_{$call}";

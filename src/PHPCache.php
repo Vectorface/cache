@@ -2,6 +2,9 @@
 
 namespace Vectorface\Cache;
 
+use Vectorface\Cache\Common\PSR16Util;
+use Vectorface\Cache\Common\MultipleTrait;
+
 /**
  * A cache implementation using an internal PHP associative array.
  *
@@ -12,6 +15,7 @@ namespace Vectorface\Cache;
  */
 class PHPCache implements Cache
 {
+    use MultipleTrait, PSR16Util;
     /**
      * The "cache" which stores entries for the lifetime of the request.
      *
@@ -22,14 +26,11 @@ class PHPCache implements Cache
     protected $cache = [];
 
     /**
-     * Fetch a cache entry by key.
-     *
-     * @param String $key The key for the entry to fetch
-     * @param mixed $default Default value to return if the key does not exist.
-     * @return mixed The value stored in the cache for $key
+     * @inheritDoc Vectorface\Cache\Cache
      */
     public function get($key, $default = null)
     {
+        $key = $this->key($key);
         if (isset($this->cache[$key])) {
             list($expires, $value) = $this->cache[$key];
             if (!$expires || ($expires >= microtime(true))) {
@@ -41,17 +42,13 @@ class PHPCache implements Cache
     }
 
     /**
-     * Set an entry in the cache.
-     *
-     * @param String $key The key/index for the cache entry
-     * @param mixed $value The item to store in the cache
-     * @param int $ttl The time to live (or expiry) of the cached item. Not all caches honor the TTL.
-     * @return bool True if successful, false otherwise.
+     * @inheritDoc Vectorface\Cache\Cache
      */
-    public function set($key, $value, $ttl = false)
+    public function set($key, $value, $ttl = null)
     {
         /* Cache gets a microtime expiry date. */
-        $this->cache[$key] = [
+        $ttl = $this->ttl($ttl);
+        $this->cache[$this->key($key)] = [
             $ttl ? ((int)$ttl + microtime(true)) : false,
             $value
         ];
@@ -66,7 +63,7 @@ class PHPCache implements Cache
      */
     public function delete($key)
     {
-        unset($this->cache[$key]);
+        unset($this->cache[$this->key($key)]);
         return true;
     }
 
@@ -78,7 +75,7 @@ class PHPCache implements Cache
     public function clean()
     {
         foreach ($this->cache as $key => $value) {
-            list($expires, $value) = $value;
+            list($expires) = $value;
             if ($expires && ($expires < microtime(true))) {
                 unset($this->cache[$key]);
             }
@@ -95,5 +92,21 @@ class PHPCache implements Cache
     {
         $this->cache = [];
         return true;
+    }
+
+    /**
+     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     */
+    public function clear()
+    {
+        return $this->flush();
+    }
+
+    /**
+     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     */
+    public function has($key)
+    {
+        return $this->get($this->key($key)) !== null;
     }
 }

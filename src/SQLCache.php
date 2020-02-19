@@ -2,6 +2,11 @@
 
 namespace Vectorface\Cache;
 
+use PDO;
+use PDOStatement;
+use PDOException;
+use Vectorface\Cache\Common\PSR16Util;
+
 /**
  * This cache is slow, according to basic benchmarks:
  *
@@ -25,12 +30,14 @@ namespace Vectorface\Cache;
  * CREATE TABLE cache (
  *     entry VARCHAR(64) PRIMARY KEY NOT NULL,
  *     value LONGBLOB,
- *     expires INT(10) UNSIGNED DEFAULT NULL,
+ *     expires BIGINT UNSIGNED DEFAULT NULL,
  *     KEY expires (expires)
  * ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
  */
 class SQLCache implements Cache
 {
+    use PSR16Util;
+
     /**
      * Hash keys beyond this size
      */
@@ -57,136 +64,234 @@ class SQLCache implements Cache
     const UPDATE_SQL = 'UPDATE cache SET value=?, expires=? WHERE entry=?';
 
     /**
-     * Statement for retrieving entries from the cache.
+     * Statement for checking if an entry exists
+     */
+    const HAS_SQL = 'SELECT COUNT(*) AS num FROM cache WHERE entry=? AND expires>=UNIX_TIMESTAMP()';
+
+    /**
+     * Statement for retrieving an entry from the cache
      */
     const GET_SQL = 'SELECT value FROM cache WHERE entry=? AND expires>=UNIX_TIMESTAMP()';
 
     /**
-     * Statement for deleting entries from the cache.
+     * Statement for retrieving entries from the cache (no statement caching)
+     */
+    const MGET_SQL = 'SELECT entry,value FROM cache WHERE entry IN(%s) AND expires>=UNIX_TIMESTAMP()';
+
+    /**
+     * Statement for deleting an entry from the cache
      */
     const DELETE_SQL = 'DELETE FROM cache WHERE entry=?';
 
     /**
+     * Statement for deleting entries from the cache (no statement caching)
+     */
+    const MDELETE_SQL = 'DELETE FROM cache WHERE entry IN(%s)';
+
+    /**
      * The database connection to be used for cache operations.
      *
-     * @var \PDO
+     * @var PDO
      */
     private $conn;
 
     /**
      * An associative array of PDO statements used in get/set.
      *
-     * @var \PDOStatement
+     * @var PDOStatement
      */
     private $statements = [];
 
     /**
      * Create an instance of the SQL cache.
      *
-     * @param \PDO $conn The database connection to use for cache operations.
+     * @param PDO $conn The database connection to use for cache operations.
      */
-    public function __construct(\PDO $conn)
+    public function __construct(PDO $conn)
     {
         $this->conn = $conn;
     }
 
     /**
-     * Attempt to retrieve an entry from the cache.
-     *
-     * The value will be unserialized before it is returned.
-     *
-     * @param mixed  $default Default value to return if the key does not exist.
-     * @return mixed Returns the value stored for the given key, or false on failure.
+     * @inheritDoc Vectorface\Cache\Cache
      */
     public function get($key, $default = null)
     {
+        $key = $this->key($key);
         $key = (strlen($key) > self::MAX_KEY_LEN) ? $this->hashKey($key) : $key;
 
         try {
             $stmt = $this->getStatement(__METHOD__, self::GET_SQL);
             $stmt->execute([$key]);
-        } catch (\PDOException $e) {
-            return false;
+        } catch (PDOException $e) {
+            return $default;
         }
         $result = $stmt->fetchColumn();
         return empty($result) ? $default : unserialize($result);
     }
 
     /**
-     * Place an entry in the cache, overwriting it if it already exists.
-     *
-     * The value will be serialized before it is written.
-     *
-     * @param string $key The cache key.
-     * @param mixed $value The value to be stored.
-     * @param int $ttl The time to live, in seconds.
-     * @return bool True if successful, false otherwise.
+     * @inheritDoc
      */
-    public function set($key, $value, $ttl = false)
+    public function getMultiple($keys, $default = null)
     {
+        if (empty($keys)) {
+            return [];
+        }
+
+        $keys = $this->keys($keys);
+        $sqlKeys = [];
+        foreach ($keys as $key) {
+            $sqlKeys[] = (strlen($key) > self::MAX_KEY_LEN) ? $this->hashKey($key) : $key;
+        }
+
+        try {
+            $stmt = $this->conn->prepare(sprintf(
+                self::MGET_SQL,
+                implode(',', array_fill(0, count($keys), '?'))
+            ));
+            $stmt->execute($sqlKeys);
+            $result = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+        } catch (PDOException $e) {
+            $result = [];
+        }
+
+        $return = array_map('unserialize', $result);
+        foreach ($keys as $key) {
+            if (!isset($return[$key])) {
+                $return[$key] = $default;
+            }
+        }
+        return $return;
+    }
+
+
+    /**
+     * @inheritDoc Vectorface\Cache\Cache
+     */
+    public function set($key, $value, $ttl = null)
+    {
+        $key = $this->key($key);
         $key = (strlen($key) > self::MAX_KEY_LEN) ? $this->hashKey($key) : $key;
-        $ttl = $ttl ? ($ttl + time()) : (pow(2, 32) - 1);
+        $ttl = $this->ttl($ttl);
+        $ttl = $ttl ? ($ttl + time()) : PHP_INT_MAX;
         $value = serialize($value);
 
         try {
             $stmt = $this->getStatement(__METHOD__ . ".insert", self::SET_SQL);
             return $stmt->execute([$key, $value, $ttl]);
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
         } // fall through to attempt update
 
         try {
             $stmt = $this->getStatement(__METHOD__ . ".update", self::UPDATE_SQL);
             return $stmt->execute([$value, $ttl, $key]);
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             return false;
         }
     }
 
     /**
-     * Remove an entry from the cache.
-     *
-     * @param String $key The key to be deleted (removed) from the cache.
+     * @inheritDoc Psr\SimpleCache\CacheInterface
+     */
+    public function setMultiple($values, $ttl = null)
+    {
+        $success = true;
+        foreach ($values as $key => $value) {
+            $success = $this->set($key, $value, $ttl) && $success;
+        }
+        return $success;
+    }
+
+    /**
+     * @inheritDoc Vectorface\Cache\Cache
      */
     public function delete($key)
     {
+        $key = $this->key($key);
         $key = (strlen($key) > self::MAX_KEY_LEN) ? $this->hashKey($key) : $key;
 
         try {
             $stmt = $this->getStatement(__METHOD__, self::DELETE_SQL);
             return $stmt->execute([$key]);
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             return false;
         }
     }
 
     /**
-     * Remove any expired items from the cache.
-     *
-     * @return bool True if successful, false otherwise.
+     * @inheritDoc
+     */
+    public function deleteMultiple($keys)
+    {
+        if (empty($keys)) {
+            return true;
+        }
+
+        foreach ($keys as &$key) {
+            $key = (strlen($key) > self::MAX_KEY_LEN) ? $this->hashKey($key) : $key;
+        }
+
+        try {
+            $stmt = $this->conn->prepare(sprintf(
+                self::MDELETE_SQL,
+                implode(',', array_fill(0, count($keys), '?'))
+            ));
+            $stmt->execute($keys);
+        } catch (PDOException $e) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @inheritdoc vectorface\cache\cache
      */
     public function clean()
     {
         try {
             $this->conn->exec(self::CLEAN_SQL);
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             return false;
         }
         return true;
     }
 
     /**
-     * Flush the cache; Empty it of all entries.
-     *
-     * @return bool True if successful, false otherwise.
+     * @inheritdoc vectorface\cache\cache
      */
     public function flush()
     {
         try {
             $this->conn->exec(self::FLUSH_SQL);
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             return false;
         }
         return true;
+    }
+
+    /**
+     * @inheritDoc Psr\SimpleCache\CacheInterface
+     */
+    public function clear()
+    {
+        return $this->flush();
+    }
+
+    /**
+     * @inheritDoc Psr\SimpleCache\CacheInterface
+     */
+    public function has($key)
+    {
+        $key = (strlen($key) > self::MAX_KEY_LEN) ? $this->hashKey($key) : $key;
+
+        try {
+            $stmt = $this->getStatement(__METHOD__, self::HAS_SQL);
+            $stmt->execute([$key]);
+        } catch (PDOException $e) {
+            return false;
+        }
+        return $stmt->fetchColumn() ? true : false;
     }
 
     /**
@@ -196,7 +301,7 @@ class SQLCache implements Cache
      *
      * @param string $method The method name to for which this statement applies.
      * @param string $sql The SQL statement associated with the given method.
-     * @return \PDOStatement Returns the prepared statement for the given method.
+     * @return PDOStatement Returns the prepared statement for the given method.
      */
     private function getStatement($method, $sql)
     {

@@ -122,6 +122,71 @@ class LogDecorator implements Cache
     }
 
     /**
+     * @inheritDoc
+     */
+    public function clear()
+    {
+        return $this->flush();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getMultiple($keys, $default = null)
+    {
+        $values = $this->cache->getMultiple($keys, $default);
+        $this->log(sprintf(
+            "getMultiple [%s] count=%d",
+            implode(', ', $keys),
+            count($values)
+        ));
+        return $values;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setMultiple($values, $ttl = null)
+    {
+        $result = $this->cache->setMultiple($values, $ttl);
+        $this->log(sprintf(
+            "setMultiple [%s] %s ttl=%s",
+            implode(', ', array_keys($values)),
+            $result ? 'SUCCESS' : 'FAILURE',
+            is_numeric($ttl) ? $ttl : "null"
+        ));
+        return $result;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function deleteMultiple($keys)
+    {
+        $result = $this->cache->deleteMultiple($keys);
+        $this->log(sprintf(
+            "deleteMultiple [%s] %s",
+            implode(', ', $keys),
+            $result ? 'SUCCESS' : 'FAILURE'
+        ));
+        return $result;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function has($key)
+    {
+        $result = $this->cache->has($key);
+        $this->log(sprintf(
+            "has %s %s",
+            $key,
+            $result ? 'true' : 'false'
+        ));
+        return $result;
+    }
+
+    /**
      * Log a message to the configured logger
      *
      * @param $message

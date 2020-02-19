@@ -2,6 +2,8 @@
 
 namespace Vectorface\Cache;
 
+use Vectorface\Cache\Common\PSR16Util;
+
 /**
  * This cache's speed is dependent on underlying caches, usually medium according to basic benchmarks:
  *
@@ -23,6 +25,8 @@ namespace Vectorface\Cache;
  */
 class TieredCache implements Cache
 {
+    use PSR16Util;
+
     /**
      * The cache layers.
      *
@@ -55,17 +59,14 @@ class TieredCache implements Cache
     }
 
     /**
-     * Get an entry from the first cache that can provide a value.
-     *
-     * @param string $entry The cache key.
-     * @param mixed $default Default value to return if the key does not exist.
-     * @return mixed The cached value, or FALSE if not found.
+     * @inheritDoc Vectorface\Cache\Cache
      */
-    public function get($entry, $default = null)
+    public function get($key, $default = null)
     {
+        $key = $this->key($key);
         foreach ($this->caches as $cache) {
-            $value = $cache->get($entry);
-            if ($value) {
+            $value = $cache->get($key, null);
+            if ($value !== null) {
                 return $value;
             }
         }
@@ -73,19 +74,11 @@ class TieredCache implements Cache
     }
 
     /**
-     * Set an entry in all caches in the stack.
-     *
-     * @param string $entry The cache key.
-     * @param mixed $value The value to be stored.
-     * @param int|false $ttl The time-to-live for the cache entry.
-     * @return bool Returns true if saving succeeded to any cache in the stack.
+     * @inheritDoc Vectorface\Cache\Cache
      */
-    public function set($entry, $value, $ttl = false)
+    public function set($key, $value, $ttl = null)
     {
-        $setCallback = function($setSuccess, $cache) use ($entry, $value, $ttl) {
-            return $setSuccess || $cache->set($entry, $value, $ttl);
-        };
-        return array_reduce($this->caches, $setCallback, false);
+        return $this->any('set', $this->key($key), $value, $this->ttl($ttl));
     }
 
     /**
@@ -96,10 +89,7 @@ class TieredCache implements Cache
      */
     public function delete($key)
     {
-        $deleteCallback = function($allDeleted, $cache) use ($key) {
-            return $allDeleted && $cache->delete($key);
-        };
-        return array_reduce($this->caches, $deleteCallback, true);
+        return $this->all('delete', $this->key($key));
     }
 
     /**
@@ -109,10 +99,7 @@ class TieredCache implements Cache
      */
     public function clean()
     {
-        $cleanCallback = function($allCleaned, $cache) {
-            return $allCleaned && $cache->clean();
-        };
-        return array_reduce($this->caches, $cleanCallback, true);
+        return $this->all('clean');
     }
 
     /**
@@ -122,9 +109,99 @@ class TieredCache implements Cache
      */
     public function flush()
     {
-        $flushCallback = function($allFlushed, $cache) {
-            return $allFlushed && $cache->flush();
-        };
-        return array_reduce($this->caches, $flushCallback, true);
+        return $this->all('flush');
+    }
+
+    /**
+     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     */
+    public function getMultiple($keys, $default = null)
+    {
+        $neededKeys = $keys;
+        $values = [];
+        foreach ($this->caches as $cache) {
+            $values = array_merge(
+                $values,
+                array_filter($cache->getMultiple($neededKeys, null))
+            );
+            if (count($values) === count($keys)) {
+                return $values;
+            }
+
+            $neededKeys = array_diff($keys, $values);
+        }
+
+        /* Finally, set defaults */
+        foreach ($keys as $key) {
+            if (!isset($values[$key])) {
+                $values[$key] = $default;
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     */
+    public function setMultiple($values, $ttl = null)
+    {
+        return $this->any('setMultiple', $this->values($values), $this->ttl($ttl));
+    }
+
+    /**
+     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     */
+    public function deleteMultiple($keys)
+    {
+        return $this->all('deleteMultiple', $this->keys($keys));
+    }
+
+    /**
+     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     */
+    public function clear()
+    {
+        return $this->flush();
+    }
+
+    /**
+     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     */
+    public function has($key)
+    {
+        return $this->get($this->key($key)) !== null;
+    }
+
+    /**
+     * Run a method on all caches, expect all caches to success for success
+     *
+     * @param string $call The cache interface method to be called
+     * @param mixed ...$args The method's arguments
+     * @return bool True if the operation was successful on all caches
+     */
+    private function all(string $call, ...$args)
+    {
+        $success = true;
+        foreach ($this->caches as $cache) {
+            $success = $success && ([$cache, $call])(...$args);
+        }
+        return $success;
+    }
+
+    /**
+     * Run a method on all caches, expect any successful result for success
+     *
+     * @param string $call The cache interface method to be called
+     * @param mixed ...$args The method's arguments
+     * @return bool True if the operation was successful on any cache
+     */
+    private function any($call, ...$args)
+    {
+        $success = false;
+        foreach ($this->caches as $cache) {
+            $success = $success || ([$cache, $call])(...$args);
+        }
+        return $success;
     }
 }

@@ -10,7 +10,7 @@ class SQLCacheTest extends GenericCacheTest
 {
     private $pdo;
 
-    public function setUp()
+    protected function setUp()
     {
         try {
             $this->pdo = new \PDO('sqlite::memory:', null, null, [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]);
@@ -27,7 +27,7 @@ class SQLCacheTest extends GenericCacheTest
     {
         /* Fail before statements are prepared. */
         $this->pdo->exec('DROP TABLE cache');
-        $this->assertFalse($this->cache->get('anything'));
+        $this->assertNull($this->cache->get('anything'));
         $this->assertFalse($this->cache->set('anything', 'anything'));
         $this->assertFalse($this->cache->delete('anything'));
         $this->assertFalse($this->cache->clean());
@@ -48,11 +48,14 @@ class SQLCacheTest extends GenericCacheTest
 
         /* Make 'em fail afterwards. */
         $this->pdo->exec('DROP TABLE cache');
-        $this->assertFalse($this->cache->get('anything'));
+        $this->assertNull($this->cache->get('anything'));
         $this->assertFalse($this->cache->set('anything', 'anything'));
         $this->assertFalse($this->cache->delete('anything'));
         $this->assertFalse($this->cache->clean());
         $this->assertFalse($this->cache->flush());
+        $this->assertFalse($this->cache->has('anything'));
+        $this->assertFalse($this->cache->deleteMultiple(['foo', 'bar']));
+        $this->assertEquals(['foo' => 'dflt', 'bar' => 'dflt'], $this->cache->getMultiple(['foo', 'bar'], 'dflt'));
     }
 
     public function testLongKey()
@@ -82,7 +85,7 @@ class SQLCacheTest extends GenericCacheTest
             CREATE TABLE cache (
                 entry VARCHAR(64) PRIMARY KEY NOT NULL,
                 value LONGBLOB,
-                expires UNSIGNED INT DEFAULT NULL
+                expires UNSIGNED BIGINT DEFAULT NULL
             )
         ');
     }

@@ -7,7 +7,7 @@ use Vectorface\Cache\APCCache;
 
 class APCCacheTest extends GenericCacheTest
 {
-    public function setUp()
+    protected function setUp()
     {
         if (!extension_loaded('apcu') || (ini_get('apc.enable_cli') !== '1')) {
             $this->markTestSkipped("APCu module not loaded, or not enabled");

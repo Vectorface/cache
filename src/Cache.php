@@ -2,18 +2,21 @@
 
 namespace Vectorface\Cache;
 
+use DateInterval;
+use Psr\SimpleCache\CacheInterface;
+
 /**
  * Cache: A common interface to various types of caches
  * N.B. This interface would conflict with any class named Cache in the future
  * such as an ormdata generated Cache{Peer} class to match the database table.
  */
-interface Cache
+interface Cache extends CacheInterface
 {
     /**
      * Fetch a cache entry by key.
      *
      * @param String $key The key for the entry to fetch
-     * @param mixed  $default Default value to return if the key does not exist.
+     * @param mixed  $default Default value to return if the key does not exist
      * @return mixed The value stored in the cache for $key
      */
     public function get($key, $default = null);
@@ -23,10 +26,10 @@ interface Cache
      *
      * @param String $key The key/index for the cache entry
      * @param mixed $value The item to store in the cache
-     * @param int $ttl The time to live (or expiry) of the cached item. Not all caches honor the TTL.
+     * @param null|int $ttl The time to live of the cached item. Not all caches honor the TTL.
      * @return bool True if successful, false otherwise.
      */
-    public function set($key, $value, $ttl = false);
+    public function set($key, $value, $ttl = null);
 
     /**
      * Remove an entry from the cache.

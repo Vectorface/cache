@@ -2,12 +2,24 @@
 
 namespace Vectorface\Cache;
 
+use Vectorface\Cache\Common\MultipleTrait;
+use Vectorface\Cache\Common\PSR16Util;
+
 /**
  * Represents a cache whose entries are stored in temporary files.
  */
 class TempFileCache implements Cache
 {
+    use MultipleTrait, PSR16Util;
+
+    /**
+     * @var string
+     */
     private $directory;
+
+    /**
+     * @var string
+     */
     private $extension;
 
     /**
@@ -20,6 +32,7 @@ class TempFileCache implements Cache
      *  - Without a directory argument, the system tempdir will be used (e.g. /tmp/TempFileCache/)
      *  - If given a relative path, it will create that directory within the system tempdir.
      *  - If given an absolute path, it will attempt to use that path as-is. Not recommended.
+     * @throws \Exception
      */
     public function __construct($directory = null, $extension = '.tempcache')
     {
@@ -39,6 +52,10 @@ class TempFileCache implements Cache
 
         $this->directory = realpath($this->directory); /* Get rid of extraneous symlinks, ..'s, etc. */
         $this->extension = empty($extension) ? "" : (string)$extension;
+
+        if (!$this->directory) {
+            throw new \Exception("Could not get directory realpath");
+        }
     }
 
     /**
@@ -59,16 +76,12 @@ class TempFileCache implements Cache
         }
     }
 
-    /*y
-     * Fetch a cache entry by key.
-     *
-     * @param String $key The key for the entry to fetch
-     * @param mixed $default Default value to return if the key does not exist.
-     * @return mixed The value stored in the cache for $key, or false on failure
+    /**
+     * @inheritDoc Vectorface\Cache\Cache
      */
     public function get($key, $default = null)
     {
-        $file = $this->makePath($key);
+        $file = $this->makePath($this->key($key));
         $data = @file_get_contents($file);
         if (!$data) {
             return $default;
@@ -90,17 +103,13 @@ class TempFileCache implements Cache
     }
 
     /**
-     * Set an entry in the cache.
-     *
-     * @param String $key The key/index for the cache entry
-     * @param mixed $value The item to store in the cache
-     * @param int $ttl The time to live (or expiry) of the cached item. Not all caches honor the TTL.
-     * @return bool True if the value was successfully stored, or false otherwise.
+     * @inheritDoc Vectorface\Cache\Cache
      */
-    public function set($key, $value, $ttl = false)
+    public function set($key, $value, $ttl = null)
     {
+        $ttl = $this->ttl($ttl);
         $data = [$ttl ? microtime(true) + $ttl : false, $value];
-        return @file_put_contents($this->makePath($key), serialize($data)) !== false;
+        return @file_put_contents($this->makePath($this->key($key)), serialize($data)) !== false;
     }
 
     /**
@@ -111,7 +120,7 @@ class TempFileCache implements Cache
      */
     public function delete($key)
     {
-        return @unlink($this->makePath($key));
+        return @unlink($this->makePath($this->key($key)));
     }
 
     /**
@@ -148,6 +157,22 @@ class TempFileCache implements Cache
             $result = $result && @unlink($file);
         }
         return $result;
+    }
+
+    /**
+     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     */
+    public function clear()
+    {
+        return $this->flush();
+    }
+
+    /**
+     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     */
+    public function has($key)
+    {
+        return $this->get($key, null) !== null;
     }
 
     /**
