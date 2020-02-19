@@ -9,6 +9,9 @@ php:
 matrix:
   fast_finish: true
 
+install:
+  - if [ -z $(php -m | grep '^apcu$') ]; then travis_wait pecl install -f apcu; fi
+
 before_script:
   - composer self-update
   - phpenv config-add .travis-apcu.ini
@@ -16,9 +19,10 @@ before_script:
 
 script:
   - ./vendor/bin/phpunit --coverage-clover=coverage.clover
-  - sh -c 'vendor/bin/test-reporter --coverage-report=coverage.clover'
+
+after_script:
   - sh -c 'wget https://scrutinizer-ci.com/ocular.phar'
   - sh -c 'php ocular.phar code-coverage:upload --format=php-clover coverage.clover'
-  - sh -c 'vendor/bin/test-reporter --coverage-report=coverage.clover'
+  - sh -c 'if [ -n "$CODECLIMATE_REPO_TOKEN" ]; then vendor/bin/test-reporter --coverage-report=coverage.clover; fi'
 
 sudo: false
