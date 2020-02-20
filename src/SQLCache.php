@@ -228,16 +228,17 @@ class SQLCache implements Cache
             return true;
         }
 
-        foreach ($keys as &$key) {
-            $key = (strlen($key) > self::MAX_KEY_LEN) ? $this->hashKey($key) : $key;
+        $keysArray = [];
+        foreach ($keys as $key) {
+            $keysArray[] = (strlen($key) > self::MAX_KEY_LEN) ? $this->hashKey($key) : $key;
         }
 
         try {
             $stmt = $this->conn->prepare(sprintf(
                 self::MDELETE_SQL,
-                implode(',', array_fill(0, count($keys), '?'))
+                implode(',', array_fill(0, count($keysArray), '?'))
             ));
-            $stmt->execute($keys);
+            $stmt->execute($keysArray);
         } catch (PDOException $e) {
             return false;
         }

@@ -44,10 +44,15 @@ trait PSR16Util
      * @throws CacheArgumentException Thrown if any of the keys is not a legal value
      */
     protected function values($values) {
-        foreach ($values as $key => $value) {
-            $key = $this->key($key); // Checks the key
+        if (!is_array($values) && !($values instanceof Traversable)) {
+            throw new CacheArgumentException("values must be provided as an array or a Traversable");
         }
-        return $values;
+
+        $array = [];
+        foreach ($values as $key => $value) {
+            $array[$this->key($key)] = $value;
+        }
+        return $array;
     }
 
     /**
@@ -63,10 +68,11 @@ trait PSR16Util
             throw new CacheArgumentException("keys must be provided as an array or a Traversable");
         }
 
-        foreach ($keys as &$key) {
-            $key = $this->key($key);
+        $array = [];
+        foreach ($keys as $key) {
+            $array[] = $this->key($key);
         }
-        return $keys;
+        return $array;
     }
 
     /**

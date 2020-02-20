@@ -50,8 +50,9 @@ abstract class GenericCacheTest extends TestCase
         foreach ($this->getCaches() as $cache) {
             $this->assertEquals(
                 ['foo' => 'dflt', 'baz' => 'dflt'],
-                $cache->getMultiple(array_keys($values), 'dflt')
-            , "Expected the result to be populated with default values");
+                $cache->getMultiple(array_keys($values), 'dflt'),
+                "Expected the result to be populated with default values"
+            );
             $this->assertEquals([], $cache->getMultiple([]));
             $this->assertTrue($cache->setMultiple($values));
             $this->assertEquals($values, $cache->getMultiple(array_keys($values)));
@@ -62,6 +63,33 @@ abstract class GenericCacheTest extends TestCase
                 $cache->getMultiple(array_keys($values), 'dflt')
             );
         }
+    }
+
+    /**
+     * Use a generator to enforce that multiple interfaces are iterable-compatible
+     */
+    public function testTraversables()
+    {
+        foreach ($this->getCaches() as $cache) {
+            $this->assertEquals(
+                ['foo' => 'dflt', 'bar' => 'dflt'],
+                $cache->getMultiple(
+                    (function() { yield 'foo'; yield 'bar'; })(),
+                    'dflt'
+                ),
+                "Expected the result to be populated with default values"
+            );
+            $this->assertTrue($cache->setMultiple(
+                (function() { yield 'foo' => 'bar'; yield 'baz' => 'quux'; })()
+            ));
+            $this->assertEquals('bar', $cache->get('foo'));
+            $this->assertEquals('quux', $cache->get('baz'));
+            $this->assertTrue($cache->deleteMultiple((function() { yield 'foo'; yield 'baz'; })()));
+        }
+
+        //$traversable = (function() { yield 'foo' => 'bar'; yield 'baz' => 'quux'; })();
+
+
     }
 
     /**
