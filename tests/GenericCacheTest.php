@@ -152,10 +152,10 @@ abstract class GenericCacheTest extends TestCase
 
     public function testPSR16()
     {
-        $expectIAE = function($callback, $message) {
+        $expectIAE = function($callback, $message = '') {
             try {
                 $callback();
-                $this->fail("$message: Expected exception");
+                $this->fail("$message: Expected exception, but none happened");
             } catch (InvalidArgumentException $e) {
                 $this->assertInstanceOf(
                     IInvalidArgumentException::class,
@@ -169,6 +169,8 @@ abstract class GenericCacheTest extends TestCase
             $expectIAE(function() use($cache) { $cache->get(new \stdClass()); }, "Invalid key in get");
             $expectIAE(function() use($cache) { $cache->set(new \stdClass(), "value"); }, "Invalid key in set, exception expected");
             $expectIAE(function() use($cache) { $cache->set("key", "value", []); }, "Invalid ttl in " . get_class($cache) . " set, exception expected");
+            $expectIAE(function() use($cache) { $cache->getMultiple(new \Exception()); }, "Shouldn't be able to getMultiple with a non-iterable");
+            $expectIAE(function() use($cache) { $cache->setMultiple(new \Exception()); }, "Shouldn't be able to setMultiple on a non-iterable");
         }
     }
 

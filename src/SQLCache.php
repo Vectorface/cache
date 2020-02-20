@@ -197,7 +197,7 @@ class SQLCache implements Cache
     public function setMultiple($values, $ttl = null)
     {
         $success = true;
-        foreach ($values as $key => $value) {
+        foreach ($this->values($values) as $key => $value) {
             $success = $this->set($key, $value, $ttl) && $success;
         }
         return $success;
