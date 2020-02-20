@@ -3,6 +3,7 @@
 namespace Vectorface\Cache;
 
 use Memcache;
+use Vectorface\Cache\Common\PSR16Util;
 
 /**
  * This cache is very fast, according to basic benchmarks:
@@ -25,6 +26,8 @@ use Memcache;
  */
 class MCCache implements Cache
 {
+    use PSR16Util;
+
     /**
      * Memcache instance; Connection to the memcached server.
      *
@@ -43,29 +46,21 @@ class MCCache implements Cache
     }
 
     /**
-     * Retrieve a cache entry by key
-     *
-     * @param string $key The cache key.
-     * @param mixed  $default Default value to return if the key does not exist.
-     * @return mixed The value stored for the given key, or false on failure.
+     * @inheritDoc Vectorface\Cache\Cache
      */
     public function get($key, $default = null)
     {
-        $return = $this->mc->get($key);
-        return ($return === false) ? $default : $return;
+        $value = $this->mc->get($this->key($key));
+        return ($value === false) ? $default : $value;
     }
 
     /**
-     * Place an item into the cache
-     *
-     * @param string $key The cache key.
-     * @param mixed $value The value to be stored. (Warning: Caches cannot store items of type resource.)
-     * @param int $ttl The time to live, in seconds. The time before the object should expire.
-     * @return bool True if successful, false otherwise.
+    /**
+     * @inheritDoc Vectorface\Cache\Cache
      */
-    public function set($key, $value, $ttl = false)
+    public function set($key, $value, $ttl = null)
     {
-        return $this->mc->set($key, $value, null, (int)$ttl);
+        return $this->mc->set($this->key($key), $value, null, $this->ttl($ttl));
     }
 
     /**
@@ -76,7 +71,7 @@ class MCCache implements Cache
      */
     public function delete($key)
     {
-        return $this->mc->delete($key);
+        return $this->mc->delete($this->key($key));
     }
 
     /**
@@ -95,5 +90,67 @@ class MCCache implements Cache
     public function flush()
     {
         return $this->mc->flush();
+    }
+
+    /**
+     * @inheritDoc Psr\SimpleCache\CacheInterface
+     */
+    public function clear()
+    {
+        return $this->flush();
+    }
+
+    /**
+     * @inheritDoc Psr\SimpleCache\CacheInterface
+     */
+    public function getMultiple($keys, $default = null)
+    {
+        $keys = $this->keys($keys);
+        $values = $this->mc->get($keys);
+
+        if ($values === false) {
+            $values = array_combine($keys, array_fill(0, count($keys), $default));
+        }
+
+        foreach ($keys as $key) {
+            if (!isset($values[$key]) || $values[$key] === false) {
+                $values[$key] = $default;
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * @inheritDoc Psr\SimpleCache\CacheInterface
+     */
+    public function setMultiple($values, $ttl = null)
+    {
+        $success = true;
+        foreach ($this->values($values) as $key => $value) {
+            $success = $this->set($key, $value, $ttl) && $success;
+        }
+        return $success;
+    }
+
+    /**
+     * @inheritDoc Psr\SimpleCache\CacheInterface
+     */
+    public function deleteMultiple($keys)
+    {
+        $success = true;
+        foreach ($this->keys($keys) as $key) {
+            $success = $this->delete($key) && $success;
+        }
+
+        return $success;
+    }
+
+    /**
+     * @inheritDoc Psr\SimpleCache\CacheInterface
+     */
+    public function has($key)
+    {
+        return $this->get($this->key($key), null) !== null;
     }
 }

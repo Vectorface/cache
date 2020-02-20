@@ -2,17 +2,19 @@
 
 namespace Vectorface\Tests\Cache;
 
+require __DIR__ . '/Helpers/fake_realpath.php';
+
 use Vectorface\Cache\Cache;
 use Vectorface\Cache\TempFileCache;
 
 class TempFileCacheTest extends GenericCacheTest
 {
-    public function setUp()
+    protected function setUp()
     {
         $this->cache = new TempFileCache();
     }
 
-    public function tearDown()
+    protected function tearDown()
     {
         $this->cache->destroy();
     }
@@ -67,5 +69,17 @@ class TempFileCacheTest extends GenericCacheTest
 
         $this->assertTrue($this->cache->set('foo', 'bar', -1));
         $this->assertNull($this->cache->get('foo'));
+    }
+
+    public function testBrokenRealpath()
+    {
+        \Vectorface\Cache\FakeRealpath::$broken = true;
+        try {
+            new TempFileCache();
+            $this->fail("Expected realpath exception to be thrown");
+        } catch (\Exception $e) {
+            $this->assertTrue($e instanceof \Exception);
+        }
+        \Vectorface\Cache\FakeRealpath::$broken = false;
     }
 }

@@ -19,7 +19,7 @@ class FakeMemcache extends \Memcache
      *
      * @var bool
      */
-    public static $broken = false;
+    public $broken = false;
 
     /**
      * Mimic Memcache::get
@@ -28,8 +28,16 @@ class FakeMemcache extends \Memcache
      */
     public function get($key, &$flags = null, &$unused = null)
     {
-        if (self::$broken) {
+        if ($this->broken) {
             return false;
+        }
+
+        if (is_array($key)) {
+            $values = [];
+            foreach ($key as $k) {
+                $values[$k] = $this->get($k);
+            }
+            return $values;
         }
 
         return isset(static::$cache[$key]) ? static::$cache[$key] : false;
@@ -42,7 +50,7 @@ class FakeMemcache extends \Memcache
      */
     public function set($key, $value, $flags = null, $ttl = 0)
     {
-        if (self::$broken) {
+        if ($this->broken) {
             return false;
         }
 
@@ -57,8 +65,11 @@ class FakeMemcache extends \Memcache
      */
     public function flush()
     {
+        if ($this->broken) {
+            return false;
+        }
         static::$cache = [];
-        return self::$broken ? false : true;
+        return true;
     }
 
     /**
@@ -68,6 +79,9 @@ class FakeMemcache extends \Memcache
      */
     public function replace($key, $value, $flag = null, $expire = 0)
     {
+        if ($this->broken) {
+            return false;
+        }
         $old = $this->get($key);
         if ($old === false) {
             return false;
@@ -83,6 +97,10 @@ class FakeMemcache extends \Memcache
      */
     public function increment($key, $value = 1)
     {
+        if ($this->broken) {
+            return false;
+        }
+
         $old = $this->get($key);
         if ($old === false) {
             return false;
@@ -108,8 +126,11 @@ class FakeMemcache extends \Memcache
      *
      * @see http://php.net/manual/en/memcache.delete.php
      */
-    public function delete($key)
+    public function delete($key, $timeout = 0)
     {
+        if ($this->broken) {
+            return false;
+        }
         unset(static::$cache[$key]);
         return true;
     }
