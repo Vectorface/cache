@@ -26,7 +26,7 @@ interface Cache extends CacheInterface
      *
      * @param String $key The key/index for the cache entry
      * @param mixed $value The item to store in the cache
-     * @param null|int $ttl The time to live of the cached item. Not all caches honor the TTL.
+     * @param null|int|DateInterval $ttl The time to live of the cached item. Not all caches honor the TTL.
      * @return bool True if successful, false otherwise.
      */
     public function set($key, $value, $ttl = null);

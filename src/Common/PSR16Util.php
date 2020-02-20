@@ -10,7 +10,7 @@ use Vectorface\Cache\Exception\InvalidArgumentException as CacheArgumentExceptio
 
 
 /**
- *
+ * Utility methods common to many PSR-16 cache implementations
  */
 trait PSR16Util
 {
@@ -24,8 +24,8 @@ trait PSR16Util
     /**
      * Enforce a fairly standard key format
      *
-     * @param $key
-     * @return mixed Returns the key, if valid
+     * @param mixed $key
+     * @return int|float|string|bool Returns the key, if valid
      * @throws CacheArgumentException Thrown if the key is not a legal value
      */
     protected function key($key)
@@ -54,7 +54,7 @@ trait PSR16Util
      * Enforce a fairly standard key format on an array or Traversable of keys
      *
      * @param iterable $keys
-     * @return mixed Returns the key, if valid
+     * @return mixed[] Returns the keys, if valid
      * @throws CacheArgumentException Thrown if any of the keys is not a legal value
      */
     protected function keys($keys)
