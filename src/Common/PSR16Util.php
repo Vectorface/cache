@@ -30,7 +30,7 @@ trait PSR16Util
      */
     protected function key($key)
     {
-        if (is_scalar($key)) {
+        if (is_numeric($key) || is_string($key)) {
             return $key;
         }
 
