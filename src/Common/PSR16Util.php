@@ -119,7 +119,7 @@ trait PSR16Util
      */
     public static function intervalToTTL(DateInterval $interval)
     {
-        $dateClass = static::$dateTimeClass;
+        $dateClass = self::$dateTimeClass;
 
         try {
             $now = new $dateClass();
