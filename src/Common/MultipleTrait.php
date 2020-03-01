@@ -9,7 +9,11 @@ namespace Vectorface\Cache\Common;
  */
 trait MultipleTrait
 {
+    abstract public function get($key, $default);
+    abstract public function set($key, $value, $ttl = null);
+    abstract public function delete($key);
     abstract protected function keys($keys);
+    abstract protected function values($values);
 
     /**
      * @inheritDoc \Psr\SimpleCache\CacheInterface
