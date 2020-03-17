@@ -35,27 +35,12 @@ class CacheHelper
     {
         $item = $cache->get($key);
         if ($item === null) {
-            $item = static::runCallback($callback, $args);
+            $item = $callback(...$args);
 
             if (isset($item)) {
                 $cache->set($key, $item, $ttl);
             }
         }
         return $item;
-    }
-
-    /**
-     * Run the callback, normalizing the arguments.
-     *
-     * @param callable $callback The callable to be executed to fetch the value the cache.
-     * @param mixed[] $args The argument(s) to the callback function.
-     * @return mixed The value returned by the callback.
-     */
-    protected static function runCallback($callback, $args)
-    {
-        if (!is_array($args)) {
-            $args = isset($args) ? [$args] : [];
-        }
-        return call_user_func_array($callback, $args);
     }
 }
