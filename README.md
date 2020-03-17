@@ -4,7 +4,7 @@
 [![Latest Stable Version](https://poser.pugx.org/vectorface/cache/v/stable.svg)](https://packagist.org/packages/vectorface/cache)
 [![License](https://poser.pugx.org/vectorface/cache/license.svg)](https://packagist.org/packages/vectorface/cache)
 
-This is a simple cache library. It exposes several different caching mechanisms (with different semantics) under a common interface. Nothing fancy.
+This is a simple cache library. It exposes several different caching mechanisms (with different semantics) under a common PSR-16 compatible interface. Nothing fancy.
 
 ## Interface
 
@@ -13,7 +13,8 @@ The cache interface exposes get and set methods, which do exactly what you'd exp
 ```php
 // PHPCache is a trivial array-backed cache.
 $cache = new \Vectorface\Cache\PHPCache();
-$cache->get("foo"); // false, because we just created this cache.
+$cache->get("foo"); // null, because we just created this cache.
+$cache->get("foo", "dflt"); // "dflt"; same as above, but with our own default
 $cache->set("foo", "bar"); // returns true if set. This cache always succeeds.
 $cache->get("foo"); // "bar", because we just set it.
 ```
