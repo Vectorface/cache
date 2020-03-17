@@ -103,10 +103,10 @@ trait PSR16Util
      */
     public static function ttl($ttl)
     {
-        if (is_numeric($ttl) || $ttl === null) {
-            return $ttl;
-        } elseif ($ttl instanceof DateInterval) {
+        if ($ttl instanceof DateInterval) {
             return static::intervalToTTL($ttl);
+        } elseif (is_numeric($ttl) || $ttl === null) {
+            return $ttl;
         }
 
         throw new CacheArgumentException("TTL must be specified as a number, a DateInterval, or null");
