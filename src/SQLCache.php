@@ -181,11 +181,13 @@ class SQLCache implements Cache
             $stmt = $this->getStatement(__METHOD__ . ".insert", self::SET_SQL);
             return $stmt->execute([$key, $value, $ttl]);
         } catch (PDOException $e) {
-        } // fall through to attempt update
+            // Insert can fail if the entry exists; It's normal.
+        }
 
         try {
             $stmt = $this->getStatement(__METHOD__ . ".update", self::UPDATE_SQL);
-            return $stmt->execute([$value, $ttl, $key]);
+            $success = $stmt->execute([$value, $ttl, $key]);
+            return $success && $stmt->rowCount() === 1;
         } catch (PDOException $e) {
             return false;
         }
