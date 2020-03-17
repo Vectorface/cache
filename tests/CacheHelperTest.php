@@ -30,13 +30,13 @@ class CacheHelperTest extends TestCase
             return func_get_args();
         };
 
-        $this->assertEquals([], CacheHelper::fetch($cache, 'a1', $callback, null, 300));
+        $this->assertEquals([], CacheHelper::fetch($cache, 'a1', $callback, [], 300));
         $this->assertEquals([1, 2, 3], CacheHelper::fetch($cache, 'a2', $callback, [1, 2, 3], 300));
-        $this->assertEquals([1], CacheHelper::fetch($cache, 'a3', $callback, 1, 300));
+        $this->assertEquals([1], CacheHelper::fetch($cache, 'a3', $callback, [1], 300));
     }
 
     /**
-     * @expectedException \InvalidArgumentException
+     * @expectedException \TypeError
      */
     public function testBadThings()
     {

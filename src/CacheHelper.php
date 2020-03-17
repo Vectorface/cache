@@ -31,12 +31,8 @@ class CacheHelper
      * @param int $ttl If a value is to be set in the cache, set this expiry time (in seconds).
      * @return mixed The value stored in the cache, or returned by the callback.
      */
-    public static function fetch(Cache $cache, $key, $callback, $args, $ttl = 300)
+    public static function fetch(Cache $cache, string $key, callable $callback, array $args = [], $ttl = 300)
     {
-        if (!(is_string($key))) {
-            throw new \InvalidArgumentException('Cache key must be a string');
-        }
-
         $item = $cache->get($key);
         if ($item === null) {
             $item = static::runCallback($callback, $args);
