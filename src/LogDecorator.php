@@ -136,9 +136,9 @@ class LogDecorator implements Cache
     {
         $values = $this->cache->getMultiple($keys, $default);
         $this->log(sprintf(
-            "getMultiple [%s] count=%d",
+            "getMultiple [%s] count=%s",
             implode(', ', $keys),
-            count($values)
+            is_array($values) ? count($values) : ('[' . gettype($values) . ']')
         ));
         return $values;
     }

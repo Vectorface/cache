@@ -109,7 +109,9 @@ class MCCache implements Cache
         $values = $this->mc->get($keys);
 
         if ($values === false) {
-            $values = array_combine($keys, array_fill(0, count($keys), $default));
+            $values = [];
+        } elseif (is_string($values)) {
+            $values = [$values]; // shouldn't technically happen if $keys is an array
         }
 
         foreach ($keys as $key) {

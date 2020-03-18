@@ -37,26 +37,36 @@ class TempFileCache implements Cache
     public function __construct($directory = null, $extension = '.tempcache')
     {
         $this->directory = $this->getTempDir($directory);
-
-        if (!file_exists($this->directory)) {
-            if (!@mkdir($this->directory, 0700, true)) {
-                throw new \Exception("Directory does not exist, and could not be created: {$this->directory}");
-            }
-        } elseif (is_dir($this->directory)) {
-            if (!is_writable($this->directory)) {
-                throw new \Exception("Directory is not writable: {$this->directory}");
-            }
-        } else {
-            throw new \Exception("Not a directory: {$this->directory}");
-        }
+        $this->checkAndCreateDir($this->directory);
 
         $realpath = realpath($this->directory); /* Get rid of extraneous symlinks, ..'s, etc. */
         if (!$realpath) {
             throw new \Exception("Could not get directory realpath");
         }
-	$this->directory = $realpath;
+        $this->directory = $realpath;
 
         $this->extension = empty($extension) ? "" : (string)$extension;
+    }
+
+    /**
+     * Check for a directory's existence and writability, and create otherwise
+     *
+     * @param string $directory
+     * @throws \Exception
+     */
+    private function checkAndCreateDir($directory)
+    {
+        if (!file_exists($directory)) {
+            if (!@mkdir($directory, 0700, true)) {
+                throw new \Exception("Directory does not exist, and could not be created: {$directory}");
+            }
+        } elseif (is_dir($directory)) {
+            if (!is_writable($directory)) {
+                throw new \Exception("Directory is not writable: {$directory}");
+            }
+        } else {
+            throw new \Exception("Not a directory: {$directory}");
+        }
     }
 
     /**

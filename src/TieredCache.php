@@ -120,9 +120,10 @@ class TieredCache implements Cache
         $neededKeys = $keys;
         $values = [];
         foreach ($this->caches as $cache) {
+            $result = $cache->getMultiple($neededKeys, null);
             $values = array_merge(
                 $values,
-                array_filter($cache->getMultiple($neededKeys, null))
+                array_filter(is_array($result) ? $result : iterator_to_array($result, true))
             );
             if (count($values) === count($keys)) {
                 return $values;

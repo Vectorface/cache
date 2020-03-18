@@ -118,7 +118,7 @@ class SQLCache implements Cache
     public function get($key, $default = null)
     {
         $key = $this->key($key);
-        $key = (strlen($key) > self::MAX_KEY_LEN) ? $this->hashKey($key) : $key;
+        $key = $this->hashKey($key);
 
         try {
             $stmt = $this->getStatement(__METHOD__, self::GET_SQL);
@@ -140,10 +140,7 @@ class SQLCache implements Cache
         }
 
         $keys = $this->keys($keys);
-        $sqlKeys = [];
-        foreach ($keys as $key) {
-            $sqlKeys[] = (strlen($key) > self::MAX_KEY_LEN) ? $this->hashKey($key) : $key;
-        }
+        $sqlKeys = array_map([$this, 'hashKey'], $keys);
 
         try {
             $stmt = $this->conn->prepare(sprintf(
@@ -172,7 +169,7 @@ class SQLCache implements Cache
     public function set($key, $value, $ttl = null)
     {
         $key = $this->key($key);
-        $key = (strlen($key) > self::MAX_KEY_LEN) ? $this->hashKey($key) : $key;
+        $key = $this->hashKey($key);
         $ttl = $this->ttl($ttl);
         $ttl = $ttl ? ($ttl + time()) : PHP_INT_MAX;
         $value = serialize($value);
@@ -210,8 +207,7 @@ class SQLCache implements Cache
      */
     public function delete($key)
     {
-        $key = $this->key($key);
-        $key = (strlen($key) > self::MAX_KEY_LEN) ? $this->hashKey($key) : $key;
+        $key = $this->hashKey($this->key($key));
 
         try {
             $stmt = $this->getStatement(__METHOD__, self::DELETE_SQL);
@@ -230,10 +226,7 @@ class SQLCache implements Cache
             return true;
         }
 
-        $keysArray = [];
-        foreach ($keys as $key) {
-            $keysArray[] = (strlen($key) > self::MAX_KEY_LEN) ? $this->hashKey($key) : $key;
-        }
+        $keysArray = array_map([$this, 'hashKey'], is_array($keys) ? $keys : iterator_to_array($keys));
 
         try {
             $stmt = $this->conn->prepare(sprintf(
@@ -286,7 +279,7 @@ class SQLCache implements Cache
      */
     public function has($key)
     {
-        $key = (strlen($key) > self::MAX_KEY_LEN) ? $this->hashKey($key) : $key;
+        $key = $this->hashKey($key);
 
         try {
             $stmt = $this->getStatement(__METHOD__, self::HAS_SQL);
@@ -315,13 +308,14 @@ class SQLCache implements Cache
     }
 
     /**
-     * Get a unique hash key; Used when the key is too long
+     * Get a unique hash key when the key is too long
+     *
      * @param string $key
-     * @return string The hash of the key parameter
+     * @return string The key, or the hash of the key parameter if it goes beyond maximum length
      * @private Public for testing
      */
     public static function hashKey($key)
     {
-        return hash('sha256', $key);
+        return (strlen($key) > self::MAX_KEY_LEN) ? hash('sha256', $key) : $key;
     }
 }

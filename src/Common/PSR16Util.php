@@ -98,7 +98,8 @@ trait PSR16Util
     /**
      * Convert a PSR-16 compatible TTL argument to a standard integer TTL as used by most caches
      *
-     * @param null|int|DateInterval $ttl
+     * @param mixed $ttl Takes a valid TTL argument and converts to an integer TTL
+     * @throws CacheArgumentException Throws if the argument is not a valid TTL
      * @return int
      */
     public static function ttl($ttl)

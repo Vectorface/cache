@@ -62,7 +62,11 @@ class NullCache implements Cache
      */
     public function getMultiple($keys, $default = null)
     {
-        return array_combine($keys, array_fill(0, count($keys), $default));
+        $defaults = [];
+        foreach ($keys as $key) {
+            $defaults[$key] = $default;
+        }
+        return $defaults;
     }
 
     /**
