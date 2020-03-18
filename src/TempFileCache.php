@@ -50,12 +50,13 @@ class TempFileCache implements Cache
             throw new \Exception("Not a directory: {$this->directory}");
         }
 
-        $this->directory = realpath($this->directory); /* Get rid of extraneous symlinks, ..'s, etc. */
-        $this->extension = empty($extension) ? "" : (string)$extension;
-
-        if (!$this->directory) {
+        $realpath = realpath($this->directory); /* Get rid of extraneous symlinks, ..'s, etc. */
+        if (!$realpath) {
             throw new \Exception("Could not get directory realpath");
         }
+	$this->directory = $realpath;
+
+        $this->extension = empty($extension) ? "" : (string)$extension;
     }
 
     /**
