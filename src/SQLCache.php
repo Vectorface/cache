@@ -1,4 +1,8 @@
 <?php
+/** @noinspection SqlResolve */
+/** @noinspection SqlWithoutWhere */
+/** @noinspection SqlNoDataSourceInspection */
+/** @noinspection PhpComposerExtensionStubsInspection */
 
 namespace Vectorface\Cache;
 
@@ -113,7 +117,7 @@ class SQLCache implements Cache
     }
 
     /**
-     * @inheritDoc Vectorface\Cache\Cache
+     * @inheritDoc
      */
     public function get($key, $default = null)
     {
@@ -164,7 +168,7 @@ class SQLCache implements Cache
 
 
     /**
-     * @inheritDoc Vectorface\Cache\Cache
+     * @inheritDoc
      */
     public function set($key, $value, $ttl = null)
     {
@@ -191,7 +195,7 @@ class SQLCache implements Cache
     }
 
     /**
-     * @inheritDoc Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function setMultiple($values, $ttl = null)
     {
@@ -203,7 +207,7 @@ class SQLCache implements Cache
     }
 
     /**
-     * @inheritDoc Vectorface\Cache\Cache
+     * @inheritDoc
      */
     public function delete($key)
     {
@@ -241,7 +245,7 @@ class SQLCache implements Cache
     }
 
     /**
-     * @inheritdoc vectorface\cache\cache
+     * @inheritdoc
      */
     public function clean()
     {
@@ -254,7 +258,7 @@ class SQLCache implements Cache
     }
 
     /**
-     * @inheritdoc vectorface\cache\cache
+     * @inheritdoc
      */
     public function flush()
     {
@@ -267,7 +271,7 @@ class SQLCache implements Cache
     }
 
     /**
-     * @inheritDoc Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function clear()
     {
@@ -275,7 +279,7 @@ class SQLCache implements Cache
     }
 
     /**
-     * @inheritDoc Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function has($key)
     {

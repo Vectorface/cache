@@ -63,11 +63,11 @@ $memcache = new Memcache();
 $memcache->addServer("127.0.0.1");
 $cache = new TieredCache([
 	new APCCache(),
-	$memcache,
+	new MCCache($memcache),
 	new TempFileCache(),
 ]);
 
 $cache->get("foo"); // Tries all caches in sequence until one succeeds. Fails if none succeed.
 $cache->set("foo", "bar"); // Sets a value in all caches.
-$cache->set("foo"); // Tries all caches in sequence. The fastest should succeed and return quickly.
+$cache->get("foo"); // Tries all caches in sequence. The fastest should succeed and return quickly.
 ```

@@ -2,12 +2,14 @@
 
 namespace Vectorface\Tests\Cache;
 
-use Vectorface\Cache\Cache;
 use Vectorface\Cache\NullCache;
 use PHPUnit\Framework\TestCase;
 
 class NullCacheTest extends TestCase
 {
+    /**
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
     public function testNullCache()
     {
         $cache = new NullCache();

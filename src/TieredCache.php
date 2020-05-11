@@ -59,7 +59,7 @@ class TieredCache implements Cache
     }
 
     /**
-     * @inheritDoc Vectorface\Cache\Cache
+     * @inheritDoc
      */
     public function get($key, $default = null)
     {
@@ -74,7 +74,7 @@ class TieredCache implements Cache
     }
 
     /**
-     * @inheritDoc Vectorface\Cache\Cache
+     * @inheritDoc
      */
     public function set($key, $value, $ttl = null)
     {
@@ -82,10 +82,7 @@ class TieredCache implements Cache
     }
 
     /**
-     * Remove an entry from the cache.
-     *
-     * @param String $key The key to be deleted (removed) from the cache.
-     * @return bool True if successful on all caches in the stack, false otherwise.
+     * @inheritDoc
      */
     public function delete($key)
     {
@@ -93,9 +90,7 @@ class TieredCache implements Cache
     }
 
     /**
-     * Perform a clean operation on all caches.
-     *
-     * @return bool Returns true if clean succeeded on all caches in the stack.
+     * @inheritDoc
      */
     public function clean()
     {
@@ -103,9 +98,7 @@ class TieredCache implements Cache
     }
 
     /**
-     * Perform a flush operation on all caches.
-     *
-     * @return bool Returns true if flush succeeded on all caches in the stack.
+     * @inheritDoc
      */
     public function flush()
     {
@@ -113,7 +106,7 @@ class TieredCache implements Cache
     }
 
     /**
-     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function getMultiple($keys, $default = null)
     {
@@ -143,7 +136,7 @@ class TieredCache implements Cache
     }
 
     /**
-     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function setMultiple($values, $ttl = null)
     {
@@ -151,7 +144,7 @@ class TieredCache implements Cache
     }
 
     /**
-     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function deleteMultiple($keys)
     {
@@ -159,7 +152,7 @@ class TieredCache implements Cache
     }
 
     /**
-     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function clear()
     {
@@ -167,7 +160,7 @@ class TieredCache implements Cache
     }
 
     /**
-     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function has($key)
     {

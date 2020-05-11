@@ -2,7 +2,6 @@
 
 namespace Vectorface\Tests\Cache;
 
-use Vectorface\Cache\Cache;
 use Vectorface\Cache\APCCache;
 
 class APCCacheTest extends GenericCacheTest
@@ -15,6 +14,9 @@ class APCCacheTest extends GenericCacheTest
         $this->cache = new APCCache();
     }
 
+    /**
+     * @throws \ReflectionException
+     */
     public function testModuleNotAvailable()
     {
         $cls = new \ReflectionClass('Vectorface\\Cache\\APCCache');

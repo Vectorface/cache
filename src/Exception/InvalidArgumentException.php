@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Vectorface\Cache\Exception;
 
 use InvalidArgumentException as ParentInvalidArgumentException;

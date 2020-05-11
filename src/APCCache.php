@@ -2,10 +2,7 @@
 
 namespace Vectorface\Cache;
 
-use Psr\SimpleCache\CacheException;
-use Psr\SimpleCache\CacheInterface;
 use Vectorface\Cache\Common\PSR16Util;
-use Vectorface\Cache\Exception\InvalidArgumentException;
 
 /**
  * This cache is ridiculously fast, according to basic benchmarks:
@@ -38,7 +35,7 @@ class APCCache implements Cache
     private $apcModule = 'apcu';
 
     /**
-     * @inheritDoc Vectorface\Cache\Cache
+     * @inheritDoc
      */
     public function get($key, $default = null)
     {
@@ -47,7 +44,7 @@ class APCCache implements Cache
     }
 
     /**
-     * @inheritDoc Vectorface\Cache\Cache
+     * @inheritDoc
      */
     public function set($key, $value, $ttl = null)
     {
@@ -55,20 +52,15 @@ class APCCache implements Cache
     }
 
     /**
-     * Remove an entry from the cache.
-     *
-     * @param String $key The key to be deleted (removed) from the cache.
-     * @return bool True if successful, false otherwise.
+     * @inheritDoc
      */
     public function delete($key)
     {
         return $this->call('delete', $this->key($key));
     }
 
-    /*
-     * This is a no-op for APC, which does this on its own.
-     *
-     * @return bool Returns falsey null.
+    /**
+     * @inheritDoc
      */
     public function clean()
     {
@@ -76,9 +68,7 @@ class APCCache implements Cache
     }
 
     /**
-     * Flush the cache; Empty it of all entries.
-     *
-     * @return bool True if successful, false otherwise.
+     * @inheritDoc
      */
     public function flush()
     {
@@ -86,7 +76,7 @@ class APCCache implements Cache
     }
 
     /**
-     * @inheritDoc Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function clear()
     {
@@ -94,7 +84,7 @@ class APCCache implements Cache
     }
 
     /**
-     * @inheritDoc Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function getMultiple($keys, $default = null)
     {
@@ -107,7 +97,7 @@ class APCCache implements Cache
     }
 
     /**
-     * @inheritDoc Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function setMultiple($values, $ttl = null)
     {
@@ -121,7 +111,7 @@ class APCCache implements Cache
     }
 
     /**
-     * @inheritDoc Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function deleteMultiple($keys)
     {
@@ -134,7 +124,7 @@ class APCCache implements Cache
     }
 
     /**
-     * @inheritDoc Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function has($key)
     {

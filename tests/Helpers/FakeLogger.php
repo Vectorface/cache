@@ -1,8 +1,7 @@
 <?php
-
+/** @noinspection PhpComposerExtensionStubsInspection */
 
 namespace Vectorface\Tests\Cache\Helpers;
-
 
 class FakeLogger implements \Psr\Log\LoggerInterface
 {

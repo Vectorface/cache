@@ -2,7 +2,6 @@
 
 namespace Vectorface\Tests\Cache;
 
-use Vectorface\Cache\Cache;
 use Vectorface\Cache\PHPCache;
 
 class PHPCacheTest extends GenericCacheTest
@@ -12,6 +11,9 @@ class PHPCacheTest extends GenericCacheTest
         $this->cache = new PHPCache();
     }
 
+    /**
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
     public function testExpired()
     {
         /* The PHP cache can support negative TTL, so exploit that. */

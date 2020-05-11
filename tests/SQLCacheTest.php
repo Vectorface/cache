@@ -1,14 +1,18 @@
 <?php
+/** @noinspection SqlResolve */
+/** @noinspection SqlNoDataSourceInspection */
+/** @noinspection PhpComposerExtensionStubsInspection */
 
 namespace Vectorface\Tests\Cache;
 
-use Vectorface\MySQLite\MySQLite;
-use Vectorface\Cache\Cache;
 use Vectorface\Cache\SQLCache;
 
 class SQLCacheTest extends GenericCacheTest
 {
     private $pdo;
+
+    /** @var SQLCache */
+    protected $cache;
 
     protected function setUp()
     {
@@ -23,6 +27,10 @@ class SQLCacheTest extends GenericCacheTest
         $this->cache = new SQLCache($this->pdo);
     }
 
+    /**
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @noinspection DuplicatedCode
+     */
     public function testBadThings()
     {
         /* Fail before statements are prepared. */
@@ -58,6 +66,9 @@ class SQLCacheTest extends GenericCacheTest
         $this->assertEquals(['foo' => 'dflt', 'bar' => 'dflt'], $this->cache->getMultiple(['foo', 'bar'], 'dflt'));
     }
 
+    /**
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
     public function testLongKey()
     {
         $key = str_repeat("a", 100);
@@ -85,7 +96,7 @@ class SQLCacheTest extends GenericCacheTest
             CREATE TABLE cache (
                 entry VARCHAR(64) PRIMARY KEY NOT NULL,
                 value LONGBLOB,
-                expires UNSIGNED BIGINT DEFAULT NULL
+                expires BIGINT DEFAULT NULL
             )
         ');
     }

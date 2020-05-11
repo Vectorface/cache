@@ -2,13 +2,14 @@
 
 namespace Vectorface\Tests\Cache;
 
-require __DIR__ . '/Helpers/fake_realpath.php';
-
-use Vectorface\Cache\Cache;
+use Vectorface\Tests\Cache\Helpers\FakeRealpath;
 use Vectorface\Cache\TempFileCache;
 
 class TempFileCacheTest extends GenericCacheTest
 {
+    /** @var TempFileCache */
+    protected $cache;
+
     protected function setUp()
     {
         $this->cache = new TempFileCache();
@@ -19,6 +20,10 @@ class TempFileCacheTest extends GenericCacheTest
         $this->cache->destroy();
     }
 
+    /**
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @noinspection PhpUsageOfSilenceOperatorInspection
+     */
     public function testBadThings()
     {
         /* Corrupt a cache file. */
@@ -48,6 +53,10 @@ class TempFileCacheTest extends GenericCacheTest
         }
     }
 
+    /**
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws \Exception
+     */
     public function testAlternateDirectory()
     {
         $other = "fooBarBaz";
@@ -62,6 +71,9 @@ class TempFileCacheTest extends GenericCacheTest
         $this->assertTrue($cache->destroy());
     }
 
+    /**
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
     public function testExpiry()
     {
         $this->assertTrue($this->cache->set('foo', 'bar', 1));
@@ -73,13 +85,13 @@ class TempFileCacheTest extends GenericCacheTest
 
     public function testBrokenRealpath()
     {
-        \Vectorface\Cache\FakeRealpath::$broken = true;
+        FakeRealpath::$broken = true;
         try {
             new TempFileCache();
             $this->fail("Expected realpath exception to be thrown");
         } catch (\Exception $e) {
             $this->assertTrue($e instanceof \Exception);
         }
-        \Vectorface\Cache\FakeRealpath::$broken = false;
+        FakeRealpath::$broken = false;
     }
 }

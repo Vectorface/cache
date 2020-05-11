@@ -1,4 +1,5 @@
 <?php
+/** @noinspection PhpComposerExtensionStubsInspection */
 
 namespace Vectorface\Tests\Cache\Helpers;
 
@@ -25,6 +26,10 @@ class FakeMemcache extends \Memcache
      * Mimic Memcache::get
      *
      * @see http://php.net/manual/en/memcache.get.php
+     * @param string $key
+     * @param int|null $flags
+     * @param null $unused
+     * @return array|bool|mixed
      */
     public function get($key, &$flags = null, &$unused = null)
     {
@@ -40,13 +45,18 @@ class FakeMemcache extends \Memcache
             return $values;
         }
 
-        return isset(static::$cache[$key]) ? static::$cache[$key] : false;
+        return static::$cache[$key] ?? false;
     }
 
     /**
      * Mimic Memcache::set
      *
      * @see http://php.net/manual/en/memcache.set.php
+     * @param string $key
+     * @param mixed $value
+     * @param int|null $flags
+     * @param int $ttl
+     * @return bool
      */
     public function set($key, $value, $flags = null, $ttl = 0)
     {
@@ -76,6 +86,11 @@ class FakeMemcache extends \Memcache
      * Mimic Memcache::replace
      *
      * @see http://php.net/manual/en/memcache.replace.php
+     * @param string $key
+     * @param mixed $value
+     * @param int|null $flag
+     * @param int $expire
+     * @return bool
      */
     public function replace($key, $value, $flag = null, $expire = 0)
     {
@@ -94,6 +109,9 @@ class FakeMemcache extends \Memcache
      * Mimic Memcache::increment
      *
      * @see http://php.net/manual/en/memcache.increment.php
+     * @param string $key
+     * @param int $value
+     * @return array|bool|mixed
      */
     public function increment($key, $value = 1)
     {
@@ -115,6 +133,8 @@ class FakeMemcache extends \Memcache
      * Mimic Memcache::decrement
      *
      * @see http://php.net/manual/en/memcache.decrement.php
+     * @param string $key
+     * @param int $value
      */
     public function decrement($key, $value = 1)
     {
@@ -125,6 +145,9 @@ class FakeMemcache extends \Memcache
      * Mimic Memcache::delete
      *
      * @see http://php.net/manual/en/memcache.delete.php
+     * @param string $key
+     * @param int $timeout
+     * @return bool
      */
     public function delete($key, $timeout = 0)
     {
