@@ -19,7 +19,6 @@ interface Cache extends CacheInterface
     /**
      * @inheritDoc
      * @param array|\Traversable $values A list of keys that can obtained in a single operation.
-     * @return array|\Traversable A list of key => value pairs. Cache keys that do not exist or are stale will have $default as value.
      */
     public function setMultiple($values, $ttl = null);
 
