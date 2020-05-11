@@ -12,12 +12,16 @@ class MCCacheTest extends GenericCacheTest
     protected function setUp()
     {
         if (!class_exists("Memcache", false)) {
+            /** @noinspection PhpIgnoredClassAliasDeclaration */
             class_alias("Vectorface\Tests\Cache\Helpers\Memcache", "Memcache");
         }
         $this->memcache = new FakeMemcache();
         $this->cache = new MCCache($this->memcache);
     }
 
+    /**
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
     public function testGetMultipleWithBrokenCache()
     {
         $this->memcache->broken = true;

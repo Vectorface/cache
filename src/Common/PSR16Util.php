@@ -99,7 +99,7 @@ trait PSR16Util
      * Convert a PSR-16 compatible TTL argument to a standard integer TTL as used by most caches
      *
      * @param mixed $ttl Takes a valid TTL argument and converts to an integer TTL
-     * @throws CacheArgumentException Throws if the argument is not a valid TTL
+     * @throws CacheArgumentException|CacheException Throws if the argument is not a valid TTL
      * @return int
      */
     public static function ttl($ttl)
@@ -115,8 +115,10 @@ trait PSR16Util
 
     /**
      * Convert a DateInterval to a time diff in seconds
+     *
      * @param DateInterval $interval
      * @return int The number of seconds from now until $interval
+     * @throws CacheException
      */
     public static function intervalToTTL(DateInterval $interval)
     {

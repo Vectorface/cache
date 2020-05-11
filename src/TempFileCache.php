@@ -1,7 +1,9 @@
 <?php
+/** @noinspection PhpUsageOfSilenceOperatorInspection */
 
 namespace Vectorface\Cache;
 
+use Psr\SimpleCache\InvalidArgumentException;
 use Vectorface\Cache\Common\MultipleTrait;
 use Vectorface\Cache\Common\PSR16Util;
 
@@ -88,7 +90,7 @@ class TempFileCache implements Cache
     }
 
     /**
-     * @inheritDoc Vectorface\Cache\Cache
+     * @inheritDoc
      */
     public function get($key, $default = null)
     {
@@ -114,7 +116,7 @@ class TempFileCache implements Cache
     }
 
     /**
-     * @inheritDoc Vectorface\Cache\Cache
+     * @inheritDoc
      */
     public function set($key, $value, $ttl = null)
     {
@@ -124,10 +126,7 @@ class TempFileCache implements Cache
     }
 
     /**
-     * Delete an entry in the cache by key regardless of TTL
-     *
-     * @param string $key A key to delete from the cache.
-     * @return bool True if the cache entry was successfully deleted, false otherwise.
+     * @inheritDoc
      */
     public function delete($key)
     {
@@ -135,9 +134,7 @@ class TempFileCache implements Cache
     }
 
     /**
-     * Manually clean out entries older than their TTL
-     *
-     * @return bool Returns true if the cache directory was cleaned.
+     * @inheritDoc
      */
     public function clean()
     {
@@ -147,15 +144,18 @@ class TempFileCache implements Cache
 
         foreach ($files as $file) {
             $key = basename($file, $this->extension);
-            $this->get($key); // Automatically deletes if expired
+            try {
+                // Automatically deletes if expired
+                $this->get($key);
+            } catch (InvalidArgumentException $e) {
+                return false;
+            }
         }
         return true;
     }
 
     /**
-     * Clear the cache
-     *
-     * @return bool Returns true if all files were flushed.
+     * @inheritDoc
      */
     public function flush()
     {
@@ -171,7 +171,7 @@ class TempFileCache implements Cache
     }
 
     /**
-     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function clear()
     {
@@ -179,7 +179,7 @@ class TempFileCache implements Cache
     }
 
     /**
-     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function has($key)
     {

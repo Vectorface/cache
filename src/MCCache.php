@@ -1,4 +1,5 @@
 <?php
+/** @noinspection PhpComposerExtensionStubsInspection */
 
 namespace Vectorface\Cache;
 
@@ -6,6 +7,8 @@ use Memcache;
 use Vectorface\Cache\Common\PSR16Util;
 
 /**
+ * Implements the cache interface on top of Memcache
+ *
  * This cache is very fast, according to basic benchmarks:
  *
  * Parameters:
@@ -19,10 +22,6 @@ use Vectorface\Cache\Common\PSR16Util;
  *
  * Conclusion:
  *   Capable of approximately 11678 requests/second
- */
-
-/**
- * Implements the cache interface on top of Memcache
  */
 class MCCache implements Cache
 {
@@ -46,7 +45,7 @@ class MCCache implements Cache
     }
 
     /**
-     * @inheritDoc Vectorface\Cache\Cache
+     * @inheritDoc
      */
     public function get($key, $default = null)
     {
@@ -55,8 +54,7 @@ class MCCache implements Cache
     }
 
     /**
-    /**
-     * @inheritDoc Vectorface\Cache\Cache
+     * @inheritDoc
      */
     public function set($key, $value, $ttl = null)
     {
@@ -64,10 +62,7 @@ class MCCache implements Cache
     }
 
     /**
-     * Remove an entry from the cache.
-     *
-     * @param String $key The key to be deleted (removed) from the cache.
-     * @return bool True if successful, false otherwise.
+     * @inheritDoc
      */
     public function delete($key)
     {
@@ -75,7 +70,7 @@ class MCCache implements Cache
     }
 
     /**
-     * Clean the cache. This does nothing for Memcache, which clears itself.
+     * @inheritDoc
      */
     public function clean()
     {
@@ -83,9 +78,7 @@ class MCCache implements Cache
     }
 
     /**
-     * Flush the cache; Clear all cache entries.
-     *
-     * @return bool True if successful, false otherwise.
+     * @inheritDoc
      */
     public function flush()
     {
@@ -93,7 +86,7 @@ class MCCache implements Cache
     }
 
     /**
-     * @inheritDoc Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function clear()
     {
@@ -101,7 +94,7 @@ class MCCache implements Cache
     }
 
     /**
-     * @inheritDoc Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function getMultiple($keys, $default = null)
     {
@@ -124,7 +117,7 @@ class MCCache implements Cache
     }
 
     /**
-     * @inheritDoc Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function setMultiple($values, $ttl = null)
     {
@@ -136,7 +129,7 @@ class MCCache implements Cache
     }
 
     /**
-     * @inheritDoc Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function deleteMultiple($keys)
     {
@@ -149,7 +142,7 @@ class MCCache implements Cache
     }
 
     /**
-     * @inheritDoc Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function has($key)
     {

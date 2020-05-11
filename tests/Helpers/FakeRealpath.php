@@ -1,12 +1,19 @@
 <?php
+
+namespace Vectorface\Tests\Cache\Helpers;
+
 /**
  * Allow realpath to fail by overriding it in the namespace
  */
-namespace Vectorface\Cache;
-
 class FakeRealpath
 {
+    /** @var bool */
     public static $broken = false;
+
+    /**
+     * @param mixed ...$args
+     * @return bool|false|string
+     */
     public static function realpath(...$args)
     {
         if (static::$broken) {
@@ -17,6 +24,10 @@ class FakeRealpath
     }
 }
 
+/**
+ * @param mixed ...$args
+ * @return bool|false|string
+ */
 function realpath(...$args)
 {
     return FakeRealpath::realpath(...$args);

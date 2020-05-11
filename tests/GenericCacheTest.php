@@ -27,6 +27,10 @@ abstract class GenericCacheTest extends TestCase
 
     /**
      * @dataProvider cacheDataProvider
+     * @param string $key
+     * @param mixed $data
+     * @param int $ttl
+     * @throws IInvalidArgumentException
      */
     public function testGet($key, $data, $ttl)
     {
@@ -41,6 +45,9 @@ abstract class GenericCacheTest extends TestCase
         }
     }
 
+    /**
+     * @throws IInvalidArgumentException
+     */
     public function testMultipleOperations()
     {
         $values = [
@@ -67,6 +74,8 @@ abstract class GenericCacheTest extends TestCase
 
     /**
      * Use a generator to enforce that multiple interfaces are iterable-compatible
+     *
+     * @throws IInvalidArgumentException
      */
     public function testTraversables()
     {
@@ -94,6 +103,10 @@ abstract class GenericCacheTest extends TestCase
 
     /**
      * @dataProvider cacheDataProvider
+     * @param string $key
+     * @param mixed $data
+     * @param int $ttl
+     * @throws IInvalidArgumentException
      */
     public function testDelete($key, $data, $ttl)
     {
@@ -104,6 +117,9 @@ abstract class GenericCacheTest extends TestCase
         }
     }
 
+    /**
+     * @throws IInvalidArgumentException
+     */
     public function testHas()
     {
         foreach ($this->getCaches() as $cache) {
@@ -113,6 +129,9 @@ abstract class GenericCacheTest extends TestCase
         }
     }
 
+    /**
+     * @throws IInvalidArgumentException
+     */
     public function testClean()
     {
         /* Not all caches can clean, so just test that we can try and get a valid success/failure result. */
@@ -124,6 +143,10 @@ abstract class GenericCacheTest extends TestCase
 
     /**
      * @dataProvider cacheDataProvider
+     * @param string $key
+     * @param mixed $data
+     * @param int $ttl
+     * @throws IInvalidArgumentException
      */
     public function testFlush($key, $data, $ttl)
     {
@@ -132,12 +155,23 @@ abstract class GenericCacheTest extends TestCase
 
     /**
      * @dataProvider cacheDataProvider
+     * @param string $key
+     * @param mixed $data
+     * @param int $ttl
+     * @throws IInvalidArgumentException
      */
     public function testClear($key, $data, $ttl)
     {
         $this->realTestFlushAndClear($key, $data, $ttl, false);
     }
 
+    /**
+     * @param string $key
+     * @param mixed $data
+     * @param int $ttl
+     * @param bool $flush
+     * @throws IInvalidArgumentException
+     */
     public function realTestFlushAndClear($key, $data, $ttl, $flush)
     {
         foreach ($this->getCaches() as $cache) {
@@ -150,6 +184,9 @@ abstract class GenericCacheTest extends TestCase
         }
     }
 
+    /**
+     * @noinspection PhpParamsInspection
+     */
     public function testPSR16()
     {
         $expectIAE = function($callback, $message = '') {

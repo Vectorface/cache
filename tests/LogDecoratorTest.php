@@ -11,6 +11,7 @@ class LogDecoratorTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @test
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     public function synopsis()
     {
@@ -57,6 +58,9 @@ class LogDecoratorTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals("debug: deleteMultiple [foo, baz] SUCCESS", $logger->getLastMessage());
     }
 
+    /**
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
     public function testFailures()
     {
         /* The following are failures with NullCache */
@@ -89,17 +93,19 @@ class LogDecoratorTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals("debug: flush FAILURE", $logger->getLastMessage());
     }
 
+    /**
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     */
     public function testLoggerNotPresent()
     {
         /* You can omit the logger, and it still operates as a pass-through cache */
         $this->assertFalse((new LogDecorator(new NullCache()))->set("foo", "bar"));
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testInvalidLevel()
     {
+        $this->expectException(\InvalidArgumentException::class);
+
         new LogDecorator(new NullCache(), null, "can't log this; na na na na, na na, na na!");
     }
 }

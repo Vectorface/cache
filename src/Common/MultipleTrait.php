@@ -16,7 +16,7 @@ trait MultipleTrait
     abstract protected function values($values);
 
     /**
-     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function getMultiple($keys, $default = null)
     {
@@ -29,7 +29,7 @@ trait MultipleTrait
     }
 
     /**
-     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function setMultiple($values, $ttl = null)
     {
@@ -41,7 +41,7 @@ trait MultipleTrait
     }
 
     /**
-     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function deleteMultiple($keys)
     {

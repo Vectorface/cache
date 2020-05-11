@@ -16,6 +16,7 @@ use Vectorface\Cache\Common\MultipleTrait;
 class PHPCache implements Cache
 {
     use MultipleTrait, PSR16Util;
+
     /**
      * The "cache" which stores entries for the lifetime of the request.
      *
@@ -26,7 +27,7 @@ class PHPCache implements Cache
     protected $cache = [];
 
     /**
-     * @inheritDoc Vectorface\Cache\Cache
+     * @inheritDoc
      */
     public function get($key, $default = null)
     {
@@ -42,7 +43,7 @@ class PHPCache implements Cache
     }
 
     /**
-     * @inheritDoc Vectorface\Cache\Cache
+     * @inheritDoc
      */
     public function set($key, $value, $ttl = null)
     {
@@ -56,10 +57,7 @@ class PHPCache implements Cache
     }
 
     /**
-     * Remove an entry from the cache.
-     *
-     * @param String $key The key to be deleted (removed) from the cache.
-     * @return bool True if successful, false otherwise.
+     * @inheritDoc
      */
     public function delete($key)
     {
@@ -68,9 +66,7 @@ class PHPCache implements Cache
     }
 
     /**
-     * Manually clean out entries older than their TTL
-     *
-     * @return bool True if successful, false otherwise.
+     * @inheritDoc
      */
     public function clean()
     {
@@ -84,9 +80,7 @@ class PHPCache implements Cache
     }
 
     /**
-     * Clear the cache.
-     *
-     * @return bool True if successful, false otherwise.
+     * @inheritDoc
      */
     public function flush()
     {
@@ -95,7 +89,7 @@ class PHPCache implements Cache
     }
 
     /**
-     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function clear()
     {
@@ -103,7 +97,7 @@ class PHPCache implements Cache
     }
 
     /**
-     * @inheritDoc \Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function has($key)
     {

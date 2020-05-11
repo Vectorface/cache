@@ -2,15 +2,13 @@
 
 namespace Vectorface\Cache;
 
-use Vectorface\Cache\Common\PSR16Util;
-
 /**
  * A cache that caches nothing and always fails.
  */
 class NullCache implements Cache
 {
     /**
-     * @inheritDoc Vectorface\Cache\Cache
+     * @inheritDoc
      */
     public function get($key, $default = null)
     {
@@ -18,7 +16,7 @@ class NullCache implements Cache
     }
 
     /**
-     * @inheritDoc Vectorface\Cache\Cache
+     * @inheritDoc
      */
     public function set($key, $value, $ttl = null)
     {
@@ -26,7 +24,7 @@ class NullCache implements Cache
     }
 
     /**
-     * @inheritDoc Vectorface\Cache\Cache
+     * @inheritDoc
      */
     public function delete($key)
     {
@@ -34,7 +32,7 @@ class NullCache implements Cache
     }
 
     /**
-     * @inheritDoc Vectorface\Cache\Cache
+     * @inheritDoc
      */
     public function clean()
     {
@@ -42,7 +40,7 @@ class NullCache implements Cache
     }
 
     /**
-     * @inheritDoc Vectorface\Cache\Cache
+     * @inheritDoc
      */
     public function flush()
     {
@@ -50,7 +48,7 @@ class NullCache implements Cache
     }
 
     /**
-     * @inheritDoc Psr\SimpleCache\CacheInterface
+     * @inheritDoc
      */
     public function clear()
     {

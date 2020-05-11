@@ -2,7 +2,6 @@
 
 namespace Vectorface\Tests\Cache;
 
-use Vectorface\Cache\Cache;
 use Vectorface\Cache\PHPCache;
 use Vectorface\Cache\CacheHelper;
 use PHPUnit\Framework\TestCase;
@@ -35,11 +34,10 @@ class CacheHelperTest extends TestCase
         $this->assertEquals([1], CacheHelper::fetch($cache, 'a3', $callback, [1], 300));
     }
 
-    /**
-     * @expectedException \TypeError
-     */
     public function testBadThings()
     {
+        $this->expectException(\TypeError::class);
+
         CacheHelper::fetch(new PHPCache(), $this, function() {
         }, [], 300);
     }
