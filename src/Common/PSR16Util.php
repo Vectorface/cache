@@ -8,7 +8,6 @@ use Traversable;
 use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Cache\Exception\InvalidArgumentException as CacheArgumentException;
 
-
 /**
  * Utility methods common to many PSR-16 cache implementations
  */

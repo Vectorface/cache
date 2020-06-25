@@ -2,6 +2,7 @@
 
 namespace Vectorface\Cache;
 
+use InvalidArgumentException;
 use Vectorface\Cache\Common\PSR16Util;
 
 /**
@@ -52,7 +53,7 @@ class TieredCache implements Cache
         }
         foreach ($caches as $i => $cache) {
             if (!($cache instanceof Cache)) {
-                throw new \InvalidArgumentException("Argument $i is not of class Cache");
+                throw new InvalidArgumentException("Argument $i is not of class Cache");
             }
             $this->caches[] = $cache;
         }

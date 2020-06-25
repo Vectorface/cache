@@ -2,6 +2,7 @@
 
 namespace Vectorface\Cache;
 
+use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -43,7 +44,7 @@ class LogDecorator implements Cache
     {
         $levels = ['emergency', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug'];
         if (!in_array($level, $levels)) {
-            throw new \InvalidArgumentException("Incompatible log level: $level");
+            throw new InvalidArgumentException("Incompatible log level: $level");
         }
 
         $this->cache = $cache;
