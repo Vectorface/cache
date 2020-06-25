@@ -90,4 +90,20 @@ class NullCache implements Cache
     {
         return false;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function increment($key, $step = 1)
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function decrement($key, $step = 1)
+    {
+        return false;
+    }
 }

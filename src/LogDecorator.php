@@ -188,6 +188,38 @@ class LogDecorator implements Cache
     }
 
     /**
+     * @inheritDoc
+     */
+    public function increment($key, $step = 1)
+    {
+        $result = $this->cache->increment($key, $step);
+        $this->log(sprintf(
+            "increment %s by %d %s, value=%d",
+            $key,
+            $step,
+            ($result !== false ? 'SUCCESS' : 'FAILURE'),
+            ($result !== false ? $result : 0)
+        ));
+        return $result;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function decrement($key, $step = 1)
+    {
+        $result = $this->cache->decrement($key, $step);
+        $this->log(sprintf(
+            "decrement %s by %d %s, value=%d",
+            $key,
+            $step,
+            ($result !== false ? 'SUCCESS' : 'FAILURE'),
+            ($result !== false ? $result : 0)
+        ));
+        return $result;
+    }
+
+    /**
      * Log a message to the configured logger
      *
      * @param $message

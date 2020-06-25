@@ -169,6 +169,22 @@ class TieredCache implements Cache
     }
 
     /**
+     * @inheritDoc
+     */
+    public function increment($key, $step = 1)
+    {
+        return false; // TODO: Increment/decrement isn't really compatible with tiered caching, really.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function decrement($key, $step = 1)
+    {
+        return false; // TODO: Increment/decrement isn't really compatible with tiered caching, really.
+    }
+
+    /**
      * Run a method on all caches, expect all caches to success for success
      *
      * @param string $call The cache interface method to be called

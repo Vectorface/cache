@@ -24,5 +24,7 @@ class NullCacheTest extends TestCase
         $this->assertFalse($cache->setMultiple(['foo' => 'bar']));
         $this->assertFalse($cache->deleteMultiple(['foo', 'bar']));
         $this->assertFalse($cache->has('foo'));
+        $this->assertFalse($cache->increment('foo'));
+        $this->assertFalse($cache->decrement('foo'));
     }
 }

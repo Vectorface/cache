@@ -148,4 +148,20 @@ class MCCache implements Cache
     {
         return $this->get($this->key($key), null) !== null;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function increment($key, $step = 1)
+    {
+        return $this->mc->increment($this->key($key), $this->step($step));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function decrement($key, $step = 1)
+    {
+        return $this->mc->decrement($this->key($key), $this->step($step));
+    }
 }

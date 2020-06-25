@@ -103,4 +103,22 @@ class PHPCache implements Cache
     {
         return $this->get($this->key($key)) !== null;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function increment($key, $step = 1)
+    {
+        $key = $this->key($key);
+        return $this->set($key, $this->get($key, 0) + $this->step($step));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function decrement($key, $step = 1)
+    {
+        $key = $this->key($key);
+        return $this->set($key, $this->get($key, 0) - $this->step($step));
+    }
 }

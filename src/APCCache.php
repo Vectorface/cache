@@ -132,6 +132,22 @@ class APCCache implements Cache
     }
 
     /**
+     * @inheritDoc
+     */
+    public function increment($key, $step = 1)
+    {
+        return $this->call('inc', $this->key($key), $this->step($step));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function decrement($key, $step = 1)
+    {
+        return $this->call('dec', $this->key($key), $this->step($step));
+    }
+
+    /**
      * Pass a call through to APC or APCu
      * @param string $call Transformed to a function apc(u)_$call
      * @param mixed ...$args Function arguments

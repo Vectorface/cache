@@ -295,6 +295,78 @@ class SQLCache implements Cache
     }
 
     /**
+     * @inheritDoc
+     * @throws Exception\CacheException
+     */
+    public function increment($key, $step = 1)
+    {
+        $step = $this->step($step);
+
+        try {
+            $result = $this->conn->beginTransaction();
+            if (!$result) {
+                return false;
+            }
+
+            $current = $this->get($key, 0);
+            $next = $current + $step;
+            $result = $this->set($key, $next);
+            if (!$result) {
+                $this->conn->rollBack();
+                return false;
+            }
+
+            $result = $this->conn->commit();
+            if (!$result) {
+                return false;
+            }
+        } catch (PDOException $e) {
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
+            return false;
+        }
+
+        return $next;
+    }
+
+    /**
+     * @inheritDoc
+     * @throws Exception\CacheException
+     */
+    public function decrement($key, $step = 1)
+    {
+        $step = $this->step($step);
+
+        try {
+            $result = $this->conn->beginTransaction();
+            if (!$result) {
+                return false;
+            }
+
+            $current = $this->get($key, 0);
+            $next = $current - $step;
+            $result = $this->set($key, $next);
+            if (!$result) {
+                $this->conn->rollBack();
+                return false;
+            }
+
+            $result = $this->conn->commit();
+            if (!$result) {
+                return false;
+            }
+        } catch (PDOException $e) {
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
+            return false;
+        }
+
+        return $next;
+    }
+
+    /**
      * Get a prepared statement for the given method's SQL.
      *
      * The result is stored internally to limit repeated preparing of SQL.

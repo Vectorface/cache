@@ -75,6 +75,22 @@ trait PSR16Util
     }
 
     /**
+     * Enforce a valid step value for increment/decrement methods
+     *
+     * @param int $step
+     * @return int
+     * @throws CacheArgumentException Thrown if the step is not a legal value
+     */
+    protected function step($step)
+    {
+        if (!is_integer($step)) {
+            throw new CacheArgumentException("step must be an integer");
+        }
+
+        return $step;
+    }
+
+    /**
      * Add defaults to an array of values from a cache
      *
      * Note: This does NOT check the keys array

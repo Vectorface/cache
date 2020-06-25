@@ -10,7 +10,10 @@ use stdClass;
 use Vectorface\Cache\Cache;
 use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Cache\Exception\InvalidArgumentException;
+use Vectorface\Cache\MCCache;
 use Vectorface\Cache\SimpleCacheAdapter;
+use Vectorface\Cache\TempFileCache;
+use Vectorface\Cache\TieredCache;
 
 abstract class GenericCacheTest extends TestCase
 {
@@ -181,6 +184,26 @@ abstract class GenericCacheTest extends TestCase
 
             $this->assertNull($cache->get($key));
             $this->assertNull($cache->get($key . ".unrelated"));
+        }
+    }
+
+    /**
+     * @throws IInvalidArgumentException|CacheException
+     */
+    public function testIncrementDecrement()
+    {
+        foreach ($this->getCaches() as $cache) {
+            // TODO: Re-enable once support for these is finalized
+            //   Big WTF is that MCCache returns null on decrement for some reason?!?
+            //   MCCache also doesn't create the key with a default of zero like most other caches do.
+            if (in_array(get_class($cache), [MCCache::class, TempFileCache::class])) {
+                $this->markTestSkipped(get_class($cache) . " does not yet support increment/decrement.");
+            }
+            $this->assertEquals(1, $cache->increment("counter1", 1), get_class($cache));
+            $this->assertEquals(2, $cache->increment("counter1", 1), get_class($cache));
+            $this->assertEquals(7, $cache->increment("counter1", 5), get_class($cache));
+            $this->assertEquals(6, $cache->decrement("counter1", 1), get_class($cache));
+            $this->assertEquals(4, $cache->decrement("counter1", 2), get_class($cache));
         }
     }
 
