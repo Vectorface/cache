@@ -5,7 +5,7 @@ namespace Vectorface\Cache;
 /**
  * A cache that caches nothing and always fails.
  */
-class NullCache implements Cache
+class NullCache implements Cache, AtomicCounter
 {
     /**
      * @inheritDoc

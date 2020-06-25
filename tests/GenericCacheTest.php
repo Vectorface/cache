@@ -7,13 +7,11 @@ use PHPUnit\Framework\TestCase;
 use Psr\SimpleCache\CacheInterface;
 use Psr\SimpleCache\InvalidArgumentException as IInvalidArgumentException;
 use stdClass;
+use Vectorface\Cache\AtomicCounter;
 use Vectorface\Cache\Cache;
 use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Cache\Exception\InvalidArgumentException;
-use Vectorface\Cache\MCCache;
 use Vectorface\Cache\SimpleCacheAdapter;
-use Vectorface\Cache\TempFileCache;
-use Vectorface\Cache\TieredCache;
 
 abstract class GenericCacheTest extends TestCase
 {
@@ -188,20 +186,24 @@ abstract class GenericCacheTest extends TestCase
     }
 
     /**
-     * @throws IInvalidArgumentException|CacheException
+     * @throws IInvalidArgumentException
      */
     public function testIncrementDecrement()
     {
         foreach ($this->getCaches() as $cache) {
-            // TODO: Re-enable once support for these is finalized
-            if (in_array(get_class($cache), [TempFileCache::class])) {
-                $this->markTestSkipped(get_class($cache) . " does not yet support increment/decrement.");
+            // Only test caches that support counting
+            if (! $cache instanceof AtomicCounter) {
+                $this->assertNotInstanceOf(AtomicCounter::class, $cache);
+                continue;
             }
-            $this->assertEquals(1, $cache->increment("counter1", 1), get_class($cache));
-            $this->assertEquals(2, $cache->increment("counter1", 1), get_class($cache));
-            $this->assertEquals(7, $cache->increment("counter1", 5), get_class($cache));
-            $this->assertEquals(6, $cache->decrement("counter1", 1), get_class($cache));
-            $this->assertEquals(4, $cache->decrement("counter1", 2), get_class($cache));
+            $this->assertInstanceOf(AtomicCounter::class, $cache);
+
+            // Note: The implementation should create the key if it does not exist.
+            $this->assertEquals(1, $cache->increment("counter", 1), get_class($cache));
+            $this->assertEquals(2, $cache->increment("counter", 1), get_class($cache));
+            $this->assertEquals(7, $cache->increment("counter", 5), get_class($cache));
+            $this->assertEquals(6, $cache->decrement("counter", 1), get_class($cache));
+            $this->assertEquals(4, $cache->decrement("counter", 2), get_class($cache));
         }
     }
 

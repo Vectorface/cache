@@ -23,7 +23,7 @@ use Vectorface\Cache\Common\PSR16Util;
  * Conclusion:
  *   Capable of approximately 11678 requests/second
  */
-class MCCache implements Cache
+class MCCache implements Cache, AtomicCounter
 {
     use PSR16Util;
 

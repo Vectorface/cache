@@ -188,22 +188,6 @@ class TempFileCache implements Cache
     }
 
     /**
-     * @inheritDoc
-     */
-    public function increment($key, $step = 1)
-    {
-        return false; // TODO
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function decrement($key, $step = 1)
-    {
-        return false; // TODO
-    }
-
-    /**
      * Creates a file path in the form directory/key.extension
      *
      * @param  string $key the key of the cached element

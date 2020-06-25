@@ -38,7 +38,7 @@ use Vectorface\Cache\Common\PSR16Util;
  *     KEY expires (expires)
  * ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
  */
-class SQLCache implements Cache
+class SQLCache implements Cache, AtomicCounter
 {
     use PSR16Util;
 

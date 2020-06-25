@@ -13,7 +13,7 @@ use Psr\Log\LoggerInterface;
  *   use a different serialization mechanism, so the size should be used to
  *   give an idea of actual cached size rather than an exact value.
  */
-class LogDecorator implements Cache
+class LogDecorator implements Cache, AtomicCounter
 {
     /**
      * The wrapped cache class

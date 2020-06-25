@@ -13,7 +13,7 @@ use Vectorface\Cache\Common\MultipleTrait;
  *
  * Capable of a huge number of requests/second
  */
-class PHPCache implements Cache
+class PHPCache implements Cache, AtomicCounter
 {
     use MultipleTrait, PSR16Util;
 

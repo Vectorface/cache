@@ -23,7 +23,7 @@ use Vectorface\Cache\Common\PSR16Util;
 /**
  * Implements the Cache interface on top of APC or APCu.
  */
-class APCCache implements Cache
+class APCCache implements Cache, AtomicCounter
 {
     use PSR16Util;
 
