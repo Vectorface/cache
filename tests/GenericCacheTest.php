@@ -2,11 +2,15 @@
 
 namespace Vectorface\Tests\Cache;
 
-use Vectorface\Cache\Cache;
+use Exception;
 use PHPUnit\Framework\TestCase;
-use Vectorface\Cache\Exception\InvalidArgumentException;
-use Psr\SimpleCache\InvalidArgumentException as IInvalidArgumentException;
 use Psr\SimpleCache\CacheInterface;
+use Psr\SimpleCache\InvalidArgumentException as IInvalidArgumentException;
+use stdClass;
+use Vectorface\Cache\Cache;
+use Vectorface\Cache\Exception\CacheException;
+use Vectorface\Cache\Exception\InvalidArgumentException;
+use Vectorface\Cache\SimpleCacheAdapter;
 
 abstract class GenericCacheTest extends TestCase
 {
@@ -21,7 +25,7 @@ abstract class GenericCacheTest extends TestCase
     {
         foreach ($this->getCaches() as $cache) {
             $this->assertTrue($cache instanceof Cache);
-            $this->assertTrue($cache instanceof CacheInterface);
+            $this->assertTrue(new SimpleCacheAdapter($cache) instanceof CacheInterface);
         }
     }
 
@@ -30,7 +34,7 @@ abstract class GenericCacheTest extends TestCase
      * @param string $key
      * @param mixed $data
      * @param int $ttl
-     * @throws IInvalidArgumentException
+     * @throws IInvalidArgumentException|CacheException
      */
     public function testGet($key, $data, $ttl)
     {
@@ -46,7 +50,7 @@ abstract class GenericCacheTest extends TestCase
     }
 
     /**
-     * @throws IInvalidArgumentException
+     * @throws IInvalidArgumentException|CacheException
      */
     public function testMultipleOperations()
     {
@@ -75,7 +79,7 @@ abstract class GenericCacheTest extends TestCase
     /**
      * Use a generator to enforce that multiple interfaces are iterable-compatible
      *
-     * @throws IInvalidArgumentException
+     * @throws IInvalidArgumentException|CacheException
      */
     public function testTraversables()
     {
@@ -95,10 +99,6 @@ abstract class GenericCacheTest extends TestCase
             $this->assertEquals('quux', $cache->get('baz'));
             $this->assertTrue($cache->deleteMultiple((function() { yield 'foo'; yield 'baz'; })()));
         }
-
-        //$traversable = (function() { yield 'foo' => 'bar'; yield 'baz' => 'quux'; })();
-
-
     }
 
     /**
@@ -106,7 +106,7 @@ abstract class GenericCacheTest extends TestCase
      * @param string $key
      * @param mixed $data
      * @param int $ttl
-     * @throws IInvalidArgumentException
+     * @throws IInvalidArgumentException|CacheException
      */
     public function testDelete($key, $data, $ttl)
     {
@@ -118,7 +118,7 @@ abstract class GenericCacheTest extends TestCase
     }
 
     /**
-     * @throws IInvalidArgumentException
+     * @throws IInvalidArgumentException|CacheException
      */
     public function testHas()
     {
@@ -130,7 +130,7 @@ abstract class GenericCacheTest extends TestCase
     }
 
     /**
-     * @throws IInvalidArgumentException
+     * @throws IInvalidArgumentException|CacheException
      */
     public function testClean()
     {
@@ -146,7 +146,7 @@ abstract class GenericCacheTest extends TestCase
      * @param string $key
      * @param mixed $data
      * @param int $ttl
-     * @throws IInvalidArgumentException
+     * @throws IInvalidArgumentException|CacheException
      */
     public function testFlush($key, $data, $ttl)
     {
@@ -158,7 +158,7 @@ abstract class GenericCacheTest extends TestCase
      * @param string $key
      * @param mixed $data
      * @param int $ttl
-     * @throws IInvalidArgumentException
+     * @throws IInvalidArgumentException|CacheException
      */
     public function testClear($key, $data, $ttl)
     {
@@ -170,7 +170,7 @@ abstract class GenericCacheTest extends TestCase
      * @param mixed $data
      * @param int $ttl
      * @param bool $flush
-     * @throws IInvalidArgumentException
+     * @throws IInvalidArgumentException|CacheException
      */
     public function realTestFlushAndClear($key, $data, $ttl, $flush)
     {
@@ -203,11 +203,12 @@ abstract class GenericCacheTest extends TestCase
         };
 
         foreach ($this->getCaches() as $cache) {
-            $expectIAE(function() use($cache) { $cache->get(new \stdClass()); }, "Invalid key in get");
-            $expectIAE(function() use($cache) { $cache->set(new \stdClass(), "value"); }, "Invalid key in set, exception expected");
+            $cache = new SimpleCacheAdapter($cache);
+            $expectIAE(function() use($cache) { $cache->get(new stdClass()); }, "Invalid key in get");
+            $expectIAE(function() use($cache) { $cache->set(new stdClass(), "value"); }, "Invalid key in set, exception expected");
             $expectIAE(function() use($cache) { $cache->set("key", "value", []); }, "Invalid ttl in " . get_class($cache) . " set, exception expected");
-            $expectIAE(function() use($cache) { $cache->getMultiple(new \Exception()); }, "Shouldn't be able to getMultiple with a non-iterable");
-            $expectIAE(function() use($cache) { $cache->setMultiple(new \Exception()); }, "Shouldn't be able to setMultiple on a non-iterable");
+            $expectIAE(function() use($cache) { $cache->getMultiple(new Exception()); }, "Shouldn't be able to getMultiple with a non-iterable");
+            $expectIAE(function() use($cache) { $cache->setMultiple(new Exception()); }, "Shouldn't be able to setMultiple on a non-iterable");
         }
     }
 

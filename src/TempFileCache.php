@@ -3,6 +3,7 @@
 
 namespace Vectorface\Cache;
 
+use Exception;
 use Psr\SimpleCache\InvalidArgumentException;
 use Vectorface\Cache\Common\MultipleTrait;
 use Vectorface\Cache\Common\PSR16Util;
@@ -34,7 +35,7 @@ class TempFileCache implements Cache
      *  - Without a directory argument, the system tempdir will be used (e.g. /tmp/TempFileCache/)
      *  - If given a relative path, it will create that directory within the system tempdir.
      *  - If given an absolute path, it will attempt to use that path as-is. Not recommended.
-     * @throws \Exception
+     * @throws Exception
      */
     public function __construct($directory = null, $extension = '.tempcache')
     {
@@ -43,7 +44,7 @@ class TempFileCache implements Cache
 
         $realpath = realpath($this->directory); /* Get rid of extraneous symlinks, ..'s, etc. */
         if (!$realpath) {
-            throw new \Exception("Could not get directory realpath");
+            throw new Exception("Could not get directory realpath");
         }
         $this->directory = $realpath;
 
@@ -54,20 +55,20 @@ class TempFileCache implements Cache
      * Check for a directory's existence and writability, and create otherwise
      *
      * @param string $directory
-     * @throws \Exception
+     * @throws Exception
      */
     private function checkAndCreateDir($directory)
     {
         if (!file_exists($directory)) {
             if (!@mkdir($directory, 0700, true)) {
-                throw new \Exception("Directory does not exist, and could not be created: {$directory}");
+                throw new Exception("Directory does not exist, and could not be created: {$directory}");
             }
         } elseif (is_dir($directory)) {
             if (!is_writable($directory)) {
-                throw new \Exception("Directory is not writable: {$directory}");
+                throw new Exception("Directory is not writable: {$directory}");
             }
         } else {
-            throw new \Exception("Not a directory: {$directory}");
+            throw new Exception("Not a directory: {$directory}");
         }
     }
 
