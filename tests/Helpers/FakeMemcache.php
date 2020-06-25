@@ -49,6 +49,31 @@ class FakeMemcache extends \Memcache
     }
 
     /**
+     * Mimic Memcache::add
+     *
+     * @see http://php.net/manual/en/memcache.add.php
+     * @param string $key
+     * @param mixed $value
+     * @param int|null $flags
+     * @param int $ttl
+     * @return bool
+     */
+    public function add($key, $value, $flags = null, $ttl = 0)
+    {
+        if ($this->broken) {
+            return false;
+        }
+
+        // Do nothing if the key already exists
+        if (isset(static::$cache[$key])) {
+            return false;
+        }
+
+        static::$cache[$key] = $value;
+        return true;
+    }
+
+    /**
      * Mimic Memcache::set
      *
      * @see http://php.net/manual/en/memcache.set.php
@@ -138,7 +163,7 @@ class FakeMemcache extends \Memcache
      */
     public function decrement($key, $value = 1)
     {
-        $this->increment($key, $value * -1);
+        return $this->increment($key, $value * -1);
     }
 
     /**

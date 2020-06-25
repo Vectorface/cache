@@ -194,9 +194,7 @@ abstract class GenericCacheTest extends TestCase
     {
         foreach ($this->getCaches() as $cache) {
             // TODO: Re-enable once support for these is finalized
-            //   Big WTF is that MCCache returns null on decrement for some reason?!?
-            //   MCCache also doesn't create the key with a default of zero like most other caches do.
-            if (in_array(get_class($cache), [MCCache::class, TempFileCache::class])) {
+            if (in_array(get_class($cache), [TempFileCache::class])) {
                 $this->markTestSkipped(get_class($cache) . " does not yet support increment/decrement.");
             }
             $this->assertEquals(1, $cache->increment("counter1", 1), get_class($cache));
