@@ -110,7 +110,9 @@ class PHPCache implements Cache, AtomicCounter
     public function increment($key, $step = 1)
     {
         $key = $this->key($key);
-        return $this->set($key, $this->get($key, 0) + $this->step($step));
+        $newValue = $this->get($key, 0) + $this->step($step);
+        $result = $this->set($key, $newValue);
+        return $result !== false ? $newValue : false;
     }
 
     /**
@@ -119,6 +121,8 @@ class PHPCache implements Cache, AtomicCounter
     public function decrement($key, $step = 1)
     {
         $key = $this->key($key);
-        return $this->set($key, $this->get($key, 0) - $this->step($step));
+        $newValue = $this->get($key, 0) - $this->step($step);
+        $result = $this->set($key, $newValue);
+        return $result !== false ? $newValue : false;
     }
 }

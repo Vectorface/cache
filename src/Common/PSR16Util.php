@@ -4,6 +4,7 @@ namespace Vectorface\Cache\Common;
 
 use DateInterval;
 use DateTime;
+use Exception;
 use Traversable;
 use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Cache\Exception\InvalidArgumentException as CacheArgumentException;
@@ -142,7 +143,7 @@ trait PSR16Util
         try {
             $now = new $dateClass();
             $exp = (new $dateClass())->add($interval);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw new CacheException("Could not get current DateTime");
         }
 

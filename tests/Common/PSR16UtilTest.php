@@ -1,49 +1,53 @@
 <?php
 
-namespace Vectorface\Tests\Cache;
+namespace Vectorface\Tests\Cache\Common;
 
 use DateInterval;
+use ReflectionClass;
+use ReflectionException;
+use stdClass;
+use Vectorface\Cache\Exception\CacheException;
+use Vectorface\Cache\Exception\InvalidArgumentException;
 use Vectorface\Cache\PHPCache;
 use PHPUnit\Framework\TestCase;
 use Vectorface\Tests\Cache\Helpers\BrokenDateTime;
 
 class PSR16UtilTest extends TestCase
 {
-    /**
-     * @expectedException Vectorface\Cache\Exception\InvalidArgumentException
-     */
     public function testEnforcesScalarKey()
     {
-        (new PHPCache)->get(new \stdClass);
+        $this->expectException(InvalidArgumentException::class);
+        (new PHPCache)->get(new stdClass);
     }
 
-    /**
-     * @expectedException Vectorface\Cache\Exception\InvalidArgumentException
-     */
     public function testEnforcesScalarKeys()
     {
-        (new PHPCache)->getMultiple([new \stdClass()]);
+        $this->expectException(InvalidArgumentException::class);
+        (new PHPCache)->getMultiple([new stdClass()]);
     }
 
-    /**
-     * @expectedException Vectorface\Cache\Exception\InvalidArgumentException
-     */
     public function testEnforcesIterableKeys()
     {
+        $this->expectException(InvalidArgumentException::class);
         (new PHPCache)->getMultiple("not array or Traversable");
     }
 
+    /**
+     * @throws CacheException
+     */
     public function testConvertsDateIntervalToTtl()
     {
         $this->assertEquals(86462, PHPCache::ttl(new DateInterval("P0000-00-01T00:01:02")));
     }
 
     /**
-     * @expectedException Vectorface\Cache\Exception\CacheException
+     * @throws CacheException
+     * @throws ReflectionException
      */
     public function testBrokenDateTime()
     {
-        $ref = new \ReflectionClass(\Vectorface\Cache\PHPCache::class);
+        $this->expectException(CacheException::class);
+        $ref = new ReflectionClass(PHPCache::class);
         $prop = $ref->getProperty('dateTimeClass');
         $prop->setAccessible(true);
         $prop->setValue(null, BrokenDateTime::class);

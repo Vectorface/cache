@@ -2,8 +2,10 @@
 
 namespace Vectorface\Tests\Cache;
 
+use Psr\SimpleCache\InvalidArgumentException;
 use Vectorface\Cache\MCCache;
 use Vectorface\Tests\Cache\Helpers\FakeMemcache;
+use Vectorface\Tests\Cache\Helpers\Memcache;
 
 class MCCacheTest extends GenericCacheTest
 {
@@ -13,14 +15,14 @@ class MCCacheTest extends GenericCacheTest
     {
         if (!class_exists("Memcache", false)) {
             /** @noinspection PhpIgnoredClassAliasDeclaration */
-            class_alias("Vectorface\Tests\Cache\Helpers\Memcache", "Memcache");
+            class_alias(Memcache::class, "Memcache");
         }
         $this->memcache = new FakeMemcache();
         $this->cache = new MCCache($this->memcache);
     }
 
     /**
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function testGetMultipleWithBrokenCache()
     {

@@ -136,7 +136,7 @@ class FakeMemcache extends \Memcache
      * @see http://php.net/manual/en/memcache.increment.php
      * @param string $key
      * @param int $value
-     * @return array|bool|mixed
+     * @return int|false
      */
     public function increment($key, $value = 1)
     {
@@ -160,6 +160,7 @@ class FakeMemcache extends \Memcache
      * @see http://php.net/manual/en/memcache.decrement.php
      * @param string $key
      * @param int $value
+     * @return int|false
      */
     public function decrement($key, $value = 1)
     {
