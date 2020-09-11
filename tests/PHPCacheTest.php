@@ -2,6 +2,7 @@
 
 namespace Vectorface\Tests\Cache;
 
+use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Cache\PHPCache;
 
 class PHPCacheTest extends GenericCacheTest
@@ -12,7 +13,7 @@ class PHPCacheTest extends GenericCacheTest
     }
 
     /**
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws CacheException
      */
     public function testExpired()
     {

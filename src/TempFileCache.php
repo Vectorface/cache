@@ -190,8 +190,8 @@ class TempFileCache implements Cache
     /**
      * Creates a file path in the form directory/key.extension
      *
-     * @param  String $key the key of the cached element
-     * @return String The file path to the cached element's enclosing file.
+     * @param  string $key the key of the cached element
+     * @return string The file path to the cached element's enclosing file.
      */
     private function makePath($key)
     {

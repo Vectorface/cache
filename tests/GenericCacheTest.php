@@ -7,6 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\SimpleCache\CacheInterface;
 use Psr\SimpleCache\InvalidArgumentException as IInvalidArgumentException;
 use stdClass;
+use Vectorface\Cache\AtomicCounter;
 use Vectorface\Cache\Cache;
 use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Cache\Exception\InvalidArgumentException;
@@ -181,6 +182,28 @@ abstract class GenericCacheTest extends TestCase
 
             $this->assertNull($cache->get($key));
             $this->assertNull($cache->get($key . ".unrelated"));
+        }
+    }
+
+    /**
+     * @throws IInvalidArgumentException
+     */
+    public function testIncrementDecrement()
+    {
+        foreach ($this->getCaches() as $cache) {
+            // Only test caches that support counting
+            if (! $cache instanceof AtomicCounter) {
+                $this->assertNotInstanceOf(AtomicCounter::class, $cache);
+                continue;
+            }
+            $this->assertInstanceOf(AtomicCounter::class, $cache);
+
+            // Note: The implementation should create the key if it does not exist.
+            $this->assertEquals(1, $cache->increment("counter", 1), get_class($cache));
+            $this->assertEquals(2, $cache->increment("counter", 1), get_class($cache));
+            $this->assertEquals(7, $cache->increment("counter", 5), get_class($cache));
+            $this->assertEquals(6, $cache->decrement("counter", 1), get_class($cache));
+            $this->assertEquals(4, $cache->decrement("counter", 2), get_class($cache));
         }
     }
 

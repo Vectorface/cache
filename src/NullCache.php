@@ -5,7 +5,7 @@ namespace Vectorface\Cache;
 /**
  * A cache that caches nothing and always fails.
  */
-class NullCache implements Cache
+class NullCache implements Cache, AtomicCounter
 {
     /**
      * @inheritDoc
@@ -87,6 +87,22 @@ class NullCache implements Cache
      * @inheritDoc
      */
     public function has($key)
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function increment($key, $step = 1)
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function decrement($key, $step = 1)
     {
         return false;
     }

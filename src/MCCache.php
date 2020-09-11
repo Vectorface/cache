@@ -23,7 +23,7 @@ use Vectorface\Cache\Common\PSR16Util;
  * Conclusion:
  *   Capable of approximately 11678 requests/second
  */
-class MCCache implements Cache
+class MCCache implements Cache, AtomicCounter
 {
     use PSR16Util;
 
@@ -147,5 +147,33 @@ class MCCache implements Cache
     public function has($key)
     {
         return $this->get($this->key($key), null) !== null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function increment($key, $step = 1)
+    {
+        $key = $this->key($key);
+
+        // If the key already exists, this is a no-op, otherwise it ensures the key is created.
+        // See https://www.php.net/manual/en/memcache.increment.php#90864
+        $this->mc->add($key, 0);
+
+        return $this->mc->increment($key, $this->step($step));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function decrement($key, $step = 1)
+    {
+        $key = $this->key($key);
+
+        // If the key already exists, this is a no-op, otherwise it ensures the key is created.
+        // See https://www.php.net/manual/en/memcache.increment.php#90864
+        $this->mc->add($key, 0);
+
+        return $this->mc->decrement($key, $this->step($step));
     }
 }

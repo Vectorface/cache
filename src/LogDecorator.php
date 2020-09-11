@@ -4,6 +4,7 @@ namespace Vectorface\Cache;
 
 use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
+use Vectorface\Cache\Exception\CacheException;
 
 /**
  * Decorates (Wraps) a Cache implementation with logging
@@ -13,11 +14,11 @@ use Psr\Log\LoggerInterface;
  *   use a different serialization mechanism, so the size should be used to
  *   give an idea of actual cached size rather than an exact value.
  */
-class LogDecorator implements Cache
+class LogDecorator implements Cache, AtomicCounter
 {
     /**
      * The wrapped cache class
-     * @var Cache
+     * @var Cache|AtomicCounter
      */
     private $cache;
 
@@ -36,7 +37,7 @@ class LogDecorator implements Cache
     private $level;
 
     /**
-     * @param Cache $cache
+     * @param Cache|AtomicCounter $cache
      * @param LoggerInterface $log
      * @param string $level
      */
@@ -54,9 +55,12 @@ class LogDecorator implements Cache
 
     /**
      * @inheritDoc
+     * @throws CacheException
      */
     public function get($key, $default = null)
     {
+        $this->throwIfNotInstanceof(Cache::class);
+
         $result = $this->cache->get($key);
         if ($result === null) {
             $this->log(sprintf("get %s MISS", $key));
@@ -76,6 +80,8 @@ class LogDecorator implements Cache
      */
     public function set($key, $value, $ttl = false)
     {
+        $this->throwIfNotInstanceof(Cache::class);
+
         $result = $this->cache->set($key, $value, $ttl);
         $this->log(sprintf(
             "set %s %s ttl=%s, type=%s, size=%d",
@@ -90,9 +96,12 @@ class LogDecorator implements Cache
 
     /**
      * @inheritDoc
+     * @throws CacheException
      */
     public function delete($key)
     {
+        $this->throwIfNotInstanceof(Cache::class);
+
         $result = $this->cache->delete($key);
         $this->log(sprintf(
             "delete %s %s",
@@ -104,9 +113,12 @@ class LogDecorator implements Cache
 
     /**
      * @inheritDoc
+     * @throws CacheException
      */
     public function flush()
     {
+        $this->throwIfNotInstanceof(Cache::class);
+
         $result = $this->cache->flush();
         $this->log(sprintf("flush %s", $result ? 'SUCCESS' : 'FAILURE'));
         return $result;
@@ -114,9 +126,12 @@ class LogDecorator implements Cache
 
     /**
      * @inheritDoc
+     * @throws CacheException
      */
     public function clean()
     {
+        $this->throwIfNotInstanceof(Cache::class);
+
         $result = $this->cache->clean();
         $this->log(sprintf("clean %s", $result ? 'SUCCESS' : 'FAILURE'));
         return $result;
@@ -124,17 +139,23 @@ class LogDecorator implements Cache
 
     /**
      * @inheritDoc
+     * @throws CacheException
      */
     public function clear()
     {
+        $this->throwIfNotInstanceof(Cache::class);
+
         return $this->flush();
     }
 
     /**
      * @inheritDoc
+     * @throws CacheException
      */
     public function getMultiple($keys, $default = null)
     {
+        $this->throwIfNotInstanceof(Cache::class);
+
         $values = $this->cache->getMultiple($keys, $default);
         $this->log(sprintf(
             "getMultiple [%s] count=%s",
@@ -149,6 +170,8 @@ class LogDecorator implements Cache
      */
     public function setMultiple($values, $ttl = null)
     {
+        $this->throwIfNotInstanceof(Cache::class);
+
         $result = $this->cache->setMultiple($values, $ttl);
         $this->log(sprintf(
             "setMultiple [%s] %s ttl=%s",
@@ -161,9 +184,12 @@ class LogDecorator implements Cache
 
     /**
      * @inheritDoc
+     * @throws CacheException
      */
     public function deleteMultiple($keys)
     {
+        $this->throwIfNotInstanceof(Cache::class);
+
         $result = $this->cache->deleteMultiple($keys);
         $this->log(sprintf(
             "deleteMultiple [%s] %s",
@@ -175,14 +201,55 @@ class LogDecorator implements Cache
 
     /**
      * @inheritDoc
+     * @throws CacheException
      */
     public function has($key)
     {
+        $this->throwIfNotInstanceof(Cache::class);
+
         $result = $this->cache->has($key);
         $this->log(sprintf(
             "has %s %s",
             $key,
             $result ? 'true' : 'false'
+        ));
+        return $result;
+    }
+
+    /**
+     * @inheritDoc
+     * @throws CacheException
+     */
+    public function increment($key, $step = 1)
+    {
+        $this->throwIfNotInstanceof(AtomicCounter::class);
+
+        $result = $this->cache->increment($key, $step);
+        $this->log(sprintf(
+            "increment %s by %d %s, value=%d",
+            $key,
+            $step,
+            ($result !== false ? 'SUCCESS' : 'FAILURE'),
+            ($result !== false ? $result : 0)
+        ));
+        return $result;
+    }
+
+    /**
+     * @inheritDoc
+     * @throws CacheException
+     */
+    public function decrement($key, $step = 1)
+    {
+        $this->throwIfNotInstanceof(AtomicCounter::class);
+
+        $result = $this->cache->decrement($key, $step);
+        $this->log(sprintf(
+            "decrement %s by %d %s, value=%d",
+            $key,
+            $step,
+            ($result !== false ? 'SUCCESS' : 'FAILURE'),
+            ($result !== false ? $result : 0)
         ));
         return $result;
     }
@@ -199,6 +266,19 @@ class LogDecorator implements Cache
         }
 
         ([$this->log, $this->level])($message);
+    }
+
+    /**
+     * Guards against calls on a decorated instance that does not support the underlying method
+     *
+     * @param string $class
+     * @throws CacheException
+     */
+    private function throwIfNotInstanceof($class)
+    {
+        if (! $this->cache instanceof $class) {
+            throw new CacheException("This decorated instance does not implement $class");
+        }
     }
 
     /**

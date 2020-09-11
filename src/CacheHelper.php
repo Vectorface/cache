@@ -16,7 +16,7 @@ class CacheHelper
      *     return $giantDataSet;
      * }
      *
-     * One could cache this by adding cache calls to the top/bottom. CacheHelper::fetch can automatate this:
+     * One could cache this by adding cache calls to the top/bottom. CacheHelper::fetch can automate this:
      *
      * function getLargeDataset($arg1, $arg2) {
      *     $key = "SomeClass::LargeDataset($arg1,$arg2)";

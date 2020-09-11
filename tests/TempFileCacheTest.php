@@ -2,6 +2,9 @@
 
 namespace Vectorface\Tests\Cache;
 
+use Exception;
+use Psr\SimpleCache\InvalidArgumentException;
+use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Tests\Cache\Helpers\FakeRealpath;
 use Vectorface\Cache\TempFileCache;
 
@@ -21,7 +24,7 @@ class TempFileCacheTest extends GenericCacheTest
     }
 
     /**
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws CacheException
      * @noinspection PhpUsageOfSilenceOperatorInspection
      */
     public function testBadThings()
@@ -48,14 +51,14 @@ class TempFileCacheTest extends GenericCacheTest
             try {
                 new TempFileCache($dir);
                 $this->fail('TempFileCache should not have been able to initialize');
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
             } // Expected
         }
     }
 
     /**
-     * @throws \Psr\SimpleCache\InvalidArgumentException
-     * @throws \Exception
+     * @throws InvalidArgumentException
+     * @throws Exception
      */
     public function testAlternateDirectory()
     {
@@ -72,7 +75,7 @@ class TempFileCacheTest extends GenericCacheTest
     }
 
     /**
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws CacheException
      */
     public function testExpiry()
     {
@@ -89,8 +92,8 @@ class TempFileCacheTest extends GenericCacheTest
         try {
             new TempFileCache();
             $this->fail("Expected realpath exception to be thrown");
-        } catch (\Exception $e) {
-            $this->assertTrue($e instanceof \Exception);
+        } catch (Exception $e) {
+            $this->assertTrue($e instanceof Exception);
         }
         FakeRealpath::$broken = false;
     }

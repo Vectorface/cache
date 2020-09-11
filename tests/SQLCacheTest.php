@@ -5,6 +5,9 @@
 
 namespace Vectorface\Tests\Cache;
 
+use PDO;
+use PDOException;
+use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Cache\SQLCache;
 
 class SQLCacheTest extends GenericCacheTest
@@ -17,8 +20,8 @@ class SQLCacheTest extends GenericCacheTest
     protected function setUp()
     {
         try {
-            $this->pdo = new \PDO('sqlite::memory:', null, null, [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]);
-        } catch (\PDOException $e) {
+            $this->pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+        } catch (PDOException $e) {
             $this->markTestSkipped("Please ensure that the pdo_sqlite module is installed and configured");
         }
         $this->pdo->sqliteCreateFunction('UNIX_TIMESTAMP', 'time', 0);
@@ -28,7 +31,7 @@ class SQLCacheTest extends GenericCacheTest
     }
 
     /**
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws CacheException
      * @noinspection DuplicatedCode
      */
     public function testBadThings()
@@ -67,7 +70,7 @@ class SQLCacheTest extends GenericCacheTest
     }
 
     /**
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws CacheException
      */
     public function testLongKey()
     {
@@ -79,7 +82,7 @@ class SQLCacheTest extends GenericCacheTest
 
         $this->assertEquals(
             serialize($expected),
-            $this->pdo->query("SELECT value FROM cache WHERE entry=\"$hash\"")->fetch(\PDO::FETCH_COLUMN)
+            $this->pdo->query("SELECT value FROM cache WHERE entry=\"$hash\"")->fetch(PDO::FETCH_COLUMN)
         );
 
         $this->assertEquals($expected, $this->cache->get($key));

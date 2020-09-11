@@ -23,7 +23,7 @@ use Vectorface\Cache\Common\PSR16Util;
 /**
  * Implements the Cache interface on top of APC or APCu.
  */
-class APCCache implements Cache
+class APCCache implements Cache, AtomicCounter
 {
     use PSR16Util;
 
@@ -129,6 +129,22 @@ class APCCache implements Cache
     public function has($key)
     {
         return $this->call('exists', $this->key($key));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function increment($key, $step = 1)
+    {
+        return $this->call('inc', $this->key($key), $this->step($step));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function decrement($key, $step = 1)
+    {
+        return $this->call('dec', $this->key($key), $this->step($step));
     }
 
     /**

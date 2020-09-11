@@ -4,6 +4,7 @@ namespace Vectorface\Cache\Common;
 
 use DateInterval;
 use DateTime;
+use Exception;
 use Traversable;
 use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Cache\Exception\InvalidArgumentException as CacheArgumentException;
@@ -75,6 +76,22 @@ trait PSR16Util
     }
 
     /**
+     * Enforce a valid step value for increment/decrement methods
+     *
+     * @param int $step
+     * @return int
+     * @throws CacheArgumentException Thrown if the step is not a legal value
+     */
+    protected function step($step)
+    {
+        if (!is_integer($step)) {
+            throw new CacheArgumentException("step must be an integer");
+        }
+
+        return $step;
+    }
+
+    /**
      * Add defaults to an array of values from a cache
      *
      * Note: This does NOT check the keys array
@@ -126,7 +143,7 @@ trait PSR16Util
         try {
             $now = new $dateClass();
             $exp = (new $dateClass())->add($interval);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw new CacheException("Could not get current DateTime");
         }
 
