@@ -220,11 +220,11 @@ class LogDecorator implements Cache, AtomicCounter
      * @inheritDoc
      * @throws CacheException
      */
-    public function increment($key, $step = 1)
+    public function increment($key, $step = 1, $ttl = null)
     {
         $this->throwIfNotInstanceof(AtomicCounter::class);
 
-        $result = $this->cache->increment($key, $step);
+        $result = $this->cache->increment($key, $step, $ttl);
         $this->log(sprintf(
             "increment %s by %d %s, value=%d",
             $key,
@@ -239,11 +239,11 @@ class LogDecorator implements Cache, AtomicCounter
      * @inheritDoc
      * @throws CacheException
      */
-    public function decrement($key, $step = 1)
+    public function decrement($key, $step = 1, $ttl = null)
     {
         $this->throwIfNotInstanceof(AtomicCounter::class);
 
-        $result = $this->cache->decrement($key, $step);
+        $result = $this->cache->decrement($key, $step, $ttl);
         $this->log(sprintf(
             "decrement %s by %d %s, value=%d",
             $key,

@@ -94,7 +94,7 @@ class NullCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function increment($key, $step = 1)
+    public function increment($key, $step = 1, $ttl = null)
     {
         return false;
     }
@@ -102,7 +102,7 @@ class NullCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function decrement($key, $step = 1)
+    public function decrement($key, $step = 1, $ttl = null)
     {
         return false;
     }
