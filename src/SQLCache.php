@@ -298,7 +298,7 @@ class SQLCache implements Cache, AtomicCounter
      * @inheritDoc
      * @throws Exception\CacheException
      */
-    public function increment($key, $step = 1)
+    public function increment($key, $step = 1, $ttl = null)
     {
         $step = $this->step($step);
 
@@ -308,9 +308,9 @@ class SQLCache implements Cache, AtomicCounter
                 return false;
             }
 
-            $current = $this->get($key, 0);
-            $next = $current + $step;
-            $result = $this->set($key, $next);
+            $current = $this->get($key);
+            $next = ($current ?? 0) + $step;
+            $result = $this->set($key, $next, ($current === null ? $ttl : null));
             if (!$result) {
                 $this->conn->rollBack();
                 return false;
@@ -334,7 +334,7 @@ class SQLCache implements Cache, AtomicCounter
      * @inheritDoc
      * @throws Exception\CacheException
      */
-    public function decrement($key, $step = 1)
+    public function decrement($key, $step = 1, $ttl = null)
     {
         $step = $this->step($step);
 
@@ -344,9 +344,9 @@ class SQLCache implements Cache, AtomicCounter
                 return false;
             }
 
-            $current = $this->get($key, 0);
-            $next = $current - $step;
-            $result = $this->set($key, $next);
+            $current = $this->get($key);
+            $next = ($current ?? 0) - $step;
+            $result = $this->set($key, $next, ($current === null ? $ttl : null));
             if (!$result) {
                 $this->conn->rollBack();
                 return false;

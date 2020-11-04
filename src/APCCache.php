@@ -134,17 +134,17 @@ class APCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function increment($key, $step = 1)
+    public function increment($key, $step = 1, $ttl = null)
     {
-        return $this->call('inc', $this->key($key), $this->step($step));
+        return $this->call('inc', $this->key($key), $this->step($step), null, $this->ttl($ttl));
     }
 
     /**
      * @inheritDoc
      */
-    public function decrement($key, $step = 1)
+    public function decrement($key, $step = 1, $ttl = null)
     {
-        return $this->call('dec', $this->key($key), $this->step($step));
+        return $this->call('dec', $this->key($key), $this->step($step), null, $this->ttl($ttl));
     }
 
     /**

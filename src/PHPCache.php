@@ -107,22 +107,24 @@ class PHPCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function increment($key, $step = 1)
+    public function increment($key, $step = 1, $ttl = null)
     {
         $key = $this->key($key);
+        $exists = $this->has($key);
         $newValue = $this->get($key, 0) + $this->step($step);
-        $result = $this->set($key, $newValue);
+        $result = $this->set($key, $newValue, (!$exists ? $ttl : null));
         return $result !== false ? $newValue : false;
     }
 
     /**
      * @inheritDoc
      */
-    public function decrement($key, $step = 1)
+    public function decrement($key, $step = 1, $ttl = null)
     {
         $key = $this->key($key);
+        $exists = $this->has($key);
         $newValue = $this->get($key, 0) - $this->step($step);
-        $result = $this->set($key, $newValue);
+        $result = $this->set($key, $newValue, (!$exists ? $ttl : null));
         return $result !== false ? $newValue : false;
     }
 }
