@@ -13,12 +13,12 @@ class TempFileCacheTest extends GenericCacheTest
     /** @var TempFileCache */
     protected $cache;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->cache = new TempFileCache();
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         $this->cache->destroy();
     }

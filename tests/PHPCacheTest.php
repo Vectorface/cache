@@ -7,7 +7,7 @@ use Vectorface\Cache\PHPCache;
 
 class PHPCacheTest extends GenericCacheTest
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->cache = new PHPCache();
     }
