@@ -1,24 +1,27 @@
 {
     "name": "vectorface/cache",
     "description": "Simple cache classes",
-    "keywords": [
-        "cache"
-    ],
+    "keywords": ["cache"],
     "type": "library",
     "license": "MIT",
     "authors": [
-        { "name": "J. Anderson" }
+        { "name": "J. Anderson" },
+        { "name": "Francis Lavoie" }
     ],
-    "autoload": {
-        "psr-4": {
-            "Vectorface\\Cache\\": "src",
-            "Vectorface\\Tests\\Cache\\": "tests"
-        }
-    },
     "homepage": "https://github.com/Vectorface/cache",
     "support": {
         "issues": "https://github.com/Vectorface/cache/issues",
         "source": "https://github.com/Vectorface/cache"
+    },
+    "autoload": {
+        "psr-4": {
+            "Vectorface\\Cache\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Vectorface\\Tests\\Cache\\": "tests"
+        }
     },
     "require": {
         "php": ">=7.0.0",
@@ -34,5 +37,11 @@
         "ext-pdo": "Needed to support in an SQL database",
         "ext-apcu": "Needed to support caching in APC(u)",
         "ext-memcache": "Needed to support caching with the Memcache extension"
+    },
+    "scripts": {
+        "test": [
+            "@test-unit"
+        ],
+        "test-unit": "phpunit --color=always"
     }
 }
