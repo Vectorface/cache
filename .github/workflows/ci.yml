@@ -24,12 +24,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Start Redis
-        uses: shogo82148/actions-setup-redis@v1
-        with:
-          auto-start: true
-          redis-version: ${{ matrix.redis-version }}
-
-      - run: redis-cli ping
+        run: docker run --name redis -p 6379:6379 -d redis:${{ matrix.redis-versions }}
 
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2 #https://github.com/shivammathur/setup-php
