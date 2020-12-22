@@ -58,7 +58,7 @@ class FakeMemcachePHP80 extends \Memcache
      * @param int $ttl
      * @return bool
      */
-    public function add(array|string $key, mixed $value, int $flags = null, int $exptime = null)
+    public function add(array|string $key, mixed $value = null, int $flags = null, int $exptime = null, int $cas = null): bool
     {
         if ($this->broken) {
             return false;
