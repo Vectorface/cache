@@ -29,6 +29,8 @@ jobs:
           auto-start: true
           redis-version: ${{ matrix.redis-version }}
 
+      - run: redis-cli ping
+
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2 #https://github.com/shivammathur/setup-php
         with:
