@@ -138,7 +138,7 @@ class FakeMemcachePHP80 extends \Memcache
      * @param int $value
      * @return int|false
      */
-    public function increment(array|string $key, int $value = 1): int|false
+    public function increment(array|string $key, int $value = 1, int $defval = null, int $exptime = null): array|int|bool
     {
         if ($this->broken) {
             return false;
@@ -162,7 +162,7 @@ class FakeMemcachePHP80 extends \Memcache
      * @param int $value
      * @return int|false
      */
-    public function decrement(array|string $key, int $value = 1): int|false
+    public function decrement(array|string $key, int $value = 1, int $defval = null, int $exptime = null): array|int|bool
     {
         return $this->increment($key, $value * -1);
     }
