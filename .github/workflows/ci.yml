@@ -17,7 +17,7 @@ jobs:
       matrix:
         operating-system: [ubuntu-latest]
         php-versions: ['7.3', '7.4', '8.0']
-        redis-versions: ['6.x']
+        redis-versions: ['6.0']
 
     steps:
       - name: Checkout
@@ -26,6 +26,7 @@ jobs:
       - name: Start Redis
         uses: shogo82148/actions-setup-redis@v1
         with:
+          auto-start: true
           redis-version: ${{ matrix.redis-version }}
 
       - name: Setup PHP, with composer and extensions
