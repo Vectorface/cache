@@ -98,7 +98,7 @@ class FakeMemcachePHP80 extends \Memcache
      *
      * @see http://php.net/manual/en/memcache.flush.php
      */
-    public function flush()
+    public function flush(int $delay = null): bool
     {
         if ($this->broken) {
             return false;
