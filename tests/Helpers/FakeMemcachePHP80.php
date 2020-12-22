@@ -31,7 +31,7 @@ class FakeMemcachePHP80 extends \Memcache
      * @param null $unused
      * @return array|bool|mixed
      */
-    public function get(array|string $key, &$flags = null, &$unused = null)
+    public function get(array|string $key, int $flags = null)
     {
         if ($this->broken) {
             return false;
@@ -58,7 +58,7 @@ class FakeMemcachePHP80 extends \Memcache
      * @param int $ttl
      * @return bool
      */
-    public function add(array|string $key, mixed $value, $flags = null, $ttl = 0)
+    public function add(array|string $key, mixed $value, int $flags = null, int $exptime = null)
     {
         if ($this->broken) {
             return false;
@@ -83,7 +83,7 @@ class FakeMemcachePHP80 extends \Memcache
      * @param int $ttl
      * @return bool
      */
-    public function set(array|string $key, mixed $value, $flags = null, $ttl = 0)
+    public function set(array|string $key, mixed $value, int $flags = null, int $exptime = null)
     {
         if ($this->broken) {
             return false;
