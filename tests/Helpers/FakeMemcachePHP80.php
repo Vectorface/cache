@@ -117,7 +117,7 @@ class FakeMemcachePHP80 extends \Memcache
      * @param int $expire
      * @return bool
      */
-    public function replace(array|string $key, mixed $value = null, int $flags = null, int $exptime = null, int $cas = null)
+    public function replace(array|string $key, mixed $value = null, int $flags = null, int $exptime = null, int $cas = null): bool
     {
         if ($this->broken) {
             return false;
@@ -138,7 +138,7 @@ class FakeMemcachePHP80 extends \Memcache
      * @param int $value
      * @return int|false
      */
-    public function increment(array|string $key, int $value = 1)
+    public function increment(array|string $key, int $value = 1): int|false
     {
         if ($this->broken) {
             return false;
@@ -162,7 +162,7 @@ class FakeMemcachePHP80 extends \Memcache
      * @param int $value
      * @return int|false
      */
-    public function decrement(array|string $key, int $value = 1)
+    public function decrement(array|string $key, int $value = 1): int|false
     {
         return $this->increment($key, $value * -1);
     }
@@ -175,7 +175,7 @@ class FakeMemcachePHP80 extends \Memcache
      * @param int $timeout
      * @return bool
      */
-    public function delete(array|string $key, int $timeout = 0)
+    public function delete(array|string $key, int $timeout = 0): bool
     {
         if ($this->broken) {
             return false;
