@@ -112,8 +112,8 @@ class PHPCache implements Cache, AtomicCounter
         $key = $this->key($key);
         $exists = $this->has($key);
         $newValue = $this->get($key, 0) + $this->step($step);
-        $result = $this->set($key, $newValue, (!$exists ? $ttl : null));
-        return $result !== false ? $newValue : false;
+        $this->set($key, $newValue, (!$exists ? $ttl : null));
+        return $newValue;
     }
 
     /**
@@ -124,7 +124,7 @@ class PHPCache implements Cache, AtomicCounter
         $key = $this->key($key);
         $exists = $this->has($key);
         $newValue = $this->get($key, 0) - $this->step($step);
-        $result = $this->set($key, $newValue, (!$exists ? $ttl : null));
-        return $result !== false ? $newValue : false;
+        $this->set($key, $newValue, (!$exists ? $ttl : null));
+        return $newValue;
     }
 }

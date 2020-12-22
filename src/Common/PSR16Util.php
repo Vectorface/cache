@@ -78,7 +78,7 @@ trait PSR16Util
     /**
      * Enforce a valid step value for increment/decrement methods
      *
-     * @param int $step
+     * @param mixed $step
      * @return int
      * @throws CacheArgumentException Thrown if the step is not a legal value
      */
