@@ -117,7 +117,7 @@ class FakeMemcachePHP80 extends \Memcache
      * @param int $expire
      * @return bool
      */
-    public function replace(array|string $key, mixed $value, $flag = null, $expire = 0)
+    public function replace(array|string $key, mixed $value = null, int $flags = null, int $exptime = null, int $cas = null)
     {
         if ($this->broken) {
             return false;
@@ -127,7 +127,7 @@ class FakeMemcachePHP80 extends \Memcache
             return false;
         }
 
-        return $this->set($key, $value, $flag, $expire);
+        return $this->set($key, $value, $flags, $exptime);
     }
 
     /**
@@ -175,7 +175,7 @@ class FakeMemcachePHP80 extends \Memcache
      * @param int $timeout
      * @return bool
      */
-    public function delete(array|string $key, $timeout = 0)
+    public function delete(array|string $key, int $timeout = 0)
     {
         if ($this->broken) {
             return false;
