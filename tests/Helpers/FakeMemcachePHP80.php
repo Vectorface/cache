@@ -31,7 +31,7 @@ class FakeMemcachePHP80 extends \Memcache
      * @param null $unused
      * @return array|bool|mixed
      */
-    public function get(array|string $key, int $flags = null)
+    public function get(array|string $key, mixed &$flags = null, mixed &$cas = null): mixed
     {
         if ($this->broken) {
             return false;
