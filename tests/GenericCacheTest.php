@@ -74,6 +74,11 @@ abstract class GenericCacheTest extends TestCase
                 ['foo' => 'dflt', 'baz' => 'dflt'],
                 $cache->getMultiple(array_keys($values), 'dflt')
             );
+
+            // With TTL
+            $this->assertTrue($cache->setMultiple($values, 10));
+            $this->assertEquals($values, $cache->getMultiple(array_keys($values)));
+            $this->assertTrue($cache->deleteMultiple(array_keys($values)));
         }
     }
 
@@ -204,6 +209,11 @@ abstract class GenericCacheTest extends TestCase
             $this->assertEquals(7, $cache->increment("counter", 5), get_class($cache));
             $this->assertEquals(6, $cache->decrement("counter", 1), get_class($cache));
             $this->assertEquals(4, $cache->decrement("counter", 2), get_class($cache));
+
+            // With TTL
+            $this->assertTrue($cache->delete("counter"), get_class($cache));
+            $this->assertEquals(3, $cache->increment("counter", 3, 10), get_class($cache));
+            $this->assertEquals(1, $cache->decrement("counter", 2, 10), get_class($cache));
         }
     }
 

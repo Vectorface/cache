@@ -27,7 +27,7 @@
         "php": ">=7.3.0",
         "psr/log": "^1.1",
         "psr/simple-cache": "^1.0",
-        "cheprasov/php-redis-client": "^1.9"
+        "cheprasov/php-redis-client": "^1.10"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.0",
