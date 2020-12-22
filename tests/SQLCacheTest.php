@@ -5,6 +5,7 @@
 
 namespace Vectorface\Tests\Cache;
 
+use InvalidArgumentException;
 use PDO;
 use PDOException;
 use Vectorface\Cache\Exception\CacheException;
@@ -17,7 +18,7 @@ class SQLCacheTest extends GenericCacheTest
     /** @var SQLCache */
     protected $cache;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         try {
             $this->pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
@@ -66,6 +67,8 @@ class SQLCacheTest extends GenericCacheTest
         $this->assertFalse($this->cache->flush());
         $this->assertFalse($this->cache->has('anything'));
         $this->assertFalse($this->cache->deleteMultiple(['foo', 'bar']));
+        $this->assertFalse($this->cache->increment('anything'));
+        $this->assertFalse($this->cache->decrement('anything'));
         $this->assertEquals(['foo' => 'dflt', 'bar' => 'dflt'], $this->cache->getMultiple(['foo', 'bar'], 'dflt'));
     }
 
@@ -88,6 +91,65 @@ class SQLCacheTest extends GenericCacheTest
         $this->assertEquals($expected, $this->cache->get($key));
         $this->assertTrue($this->cache->delete($key));
         $this->assertEquals("default", $this->cache->get($key, "default"));
+    }
+
+    /**
+     * @throws CacheException
+     */
+    public function testCounting()
+    {
+        $this->assertEquals(1, $this->cache->increment('foo'));
+        $this->assertEquals(0, $this->cache->decrement('foo'));
+
+        $this->assertEquals(5, $this->cache->increment('foo', 5));
+        $this->assertEquals(2, $this->cache->decrement('foo', 3));
+    }
+
+    /**
+     * @throws CacheException
+     */
+    public function testFailTransaction()
+    {
+        $pdoMock = $this->createMock(PDO::class);
+        $pdoMock->method('beginTransaction')->willReturn(false);
+
+        $this->assertEquals(false, (new SQLCache($pdoMock))->increment('foo'));
+        $this->assertEquals(false, (new SQLCache($pdoMock))->decrement('foo'));
+    }
+
+    /**
+     * @throws CacheException
+     */
+    public function testBadPdoIncrement()
+    {
+        $pdoMock = $this->createMock(PDO::class);
+        $pdoMock->method('beginTransaction')->willThrowException(new PDOException('bad'));
+        $pdoMock->method('inTransaction')->willReturn(true);
+        $pdoMock->method('rollback')->willReturn(true);
+
+        $this->assertEquals(false, (new SQLCache($pdoMock))->increment('foo'));
+    }
+
+    /**
+     * @throws CacheException
+     */
+    public function testBadPdoDecrement()
+    {
+        $pdoMock = $this->createMock(PDO::class);
+        $pdoMock->method('beginTransaction')->willThrowException(new PDOException('bad'));
+        $pdoMock->method('inTransaction')->willReturn(true);
+        $pdoMock->method('rollback')->willReturn(true);
+
+        $this->assertEquals(false, (new SQLCache($pdoMock))->decrement('foo'));
+    }
+
+    /**
+     * @throws CacheException
+     */
+    public function testBadStep()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->assertEquals(false, $this->cache->increment('foo', null));
     }
 
     /**

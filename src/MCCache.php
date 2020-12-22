@@ -103,8 +103,6 @@ class MCCache implements Cache, AtomicCounter
 
         if ($values === false) {
             $values = [];
-        } elseif (is_string($values)) {
-            $values = [$values]; // shouldn't technically happen if $keys is an array
         }
 
         foreach ($keys as $key) {

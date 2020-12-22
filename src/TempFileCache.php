@@ -44,7 +44,9 @@ class TempFileCache implements Cache
 
         $realpath = realpath($this->directory); /* Get rid of extraneous symlinks, ..'s, etc. */
         if (!$realpath) {
+            // @codeCoverageIgnoreStart
             throw new Exception("Could not get directory realpath");
+            // @codeCoverageIgnoreEnd
         }
         $this->directory = $realpath;
 
@@ -148,8 +150,10 @@ class TempFileCache implements Cache
             try {
                 // Automatically deletes if expired
                 $this->get($key);
+                // @codeCoverageIgnoreStart
             } catch (InvalidArgumentException $e) {
                 return false;
+                // @codeCoverageIgnoreEnd
             }
         }
         return true;
