@@ -27,6 +27,7 @@ The interface supports optional time-to-live (expiry) where supported by the und
 
 * `APCCache`: APC or APCu.
 * `MCCache`: Memcache
+* `RedisCache`: Redis, using either the [phpredis](https://github.com/phpredis/phpredis) extension or the [php-redis-client](https://github.com/cheprasov/php-redis-client) library
 * `NullCache`: A blackhole for your data
 * `PHPCache`: Stores values in a local variable, for one script execution only.
 * `SQLCache`: Values stored in an SQL table, accessed via PDO.
@@ -45,9 +46,9 @@ use Vectorface\Cache\TempFileCache;
 // Memcache and SQL-based caches also work, but aren't as good as examples.
 $caches = [new APCCache(), new PHPCache(), new TempFileCache()];
 foreach ($caches as $cache) {
-	// Look ma! Same interface!
-	$cache->set('foo', 'bar');
-	$cache->get('foo');
+    // Look ma! Same interface!
+    $cache->set('foo', 'bar');
+    $cache->get('foo');
 }
 ```
 
@@ -87,9 +88,9 @@ use Vectorface\Cache\TieredCache;
 $memcache = new Memcache();
 $memcache->addServer("127.0.0.1");
 $cache = new TieredCache([
-	new APCCache(),
-	new MCCache($memcache),
-	new TempFileCache(),
+    new APCCache(),
+    new MCCache($memcache),
+    new TempFileCache(),
 ]);
 
 $cache->get("foo"); // Tries all caches in sequence until one succeeds. Fails if none succeed.

@@ -17,10 +17,14 @@ jobs:
       matrix:
         operating-system: [ubuntu-latest]
         php-versions: ['7.3', '7.4', '8.0']
+        redis-versions: ['6.0']
 
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Start Redis
+        run: docker run --name redis -p 6379:6379 -d redis:${{ matrix.redis-versions }}
 
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2 #https://github.com/shivammathur/setup-php
@@ -28,7 +32,7 @@ jobs:
           php-version: ${{ matrix.php-versions }}
           coverage: pcov
           tools: composer:v2
-          extensions: apcu
+          extensions: apcu, redis
           ini-values: apc.enable_cli=1
         env:
           COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}

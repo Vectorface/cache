@@ -78,7 +78,7 @@ trait PSR16Util
     /**
      * Enforce a valid step value for increment/decrement methods
      *
-     * @param int $step
+     * @param mixed $step
      * @return int
      * @throws CacheArgumentException Thrown if the step is not a legal value
      */
@@ -116,7 +116,7 @@ trait PSR16Util
      *
      * @param mixed $ttl Takes a valid TTL argument and converts to an integer TTL
      * @throws CacheArgumentException|CacheException Throws if the argument is not a valid TTL
-     * @return int
+     * @return int|null
      */
     public static function ttl($ttl)
     {

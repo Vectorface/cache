@@ -61,6 +61,7 @@ class LogDecorator implements Cache, AtomicCounter
     {
         $this->throwIfNotInstanceof(Cache::class);
 
+        /** @scrutinizer ignore-call */
         $result = $this->cache->get($key);
         if ($result === null) {
             $this->log(sprintf("get %s MISS", $key));
@@ -82,6 +83,7 @@ class LogDecorator implements Cache, AtomicCounter
     {
         $this->throwIfNotInstanceof(Cache::class);
 
+        /** @scrutinizer ignore-call */
         $result = $this->cache->set($key, $value, $ttl);
         $this->log(sprintf(
             "set %s %s ttl=%s, type=%s, size=%d",
@@ -102,6 +104,7 @@ class LogDecorator implements Cache, AtomicCounter
     {
         $this->throwIfNotInstanceof(Cache::class);
 
+        /** @scrutinizer ignore-call */
         $result = $this->cache->delete($key);
         $this->log(sprintf(
             "delete %s %s",
@@ -119,6 +122,7 @@ class LogDecorator implements Cache, AtomicCounter
     {
         $this->throwIfNotInstanceof(Cache::class);
 
+        /** @scrutinizer ignore-call */
         $result = $this->cache->flush();
         $this->log(sprintf("flush %s", $result ? 'SUCCESS' : 'FAILURE'));
         return $result;
@@ -132,6 +136,7 @@ class LogDecorator implements Cache, AtomicCounter
     {
         $this->throwIfNotInstanceof(Cache::class);
 
+        /** @scrutinizer ignore-call */
         $result = $this->cache->clean();
         $this->log(sprintf("clean %s", $result ? 'SUCCESS' : 'FAILURE'));
         return $result;
@@ -156,6 +161,7 @@ class LogDecorator implements Cache, AtomicCounter
     {
         $this->throwIfNotInstanceof(Cache::class);
 
+        /** @scrutinizer ignore-call */
         $values = $this->cache->getMultiple($keys, $default);
         $this->log(sprintf(
             "getMultiple [%s] count=%s",
@@ -172,6 +178,7 @@ class LogDecorator implements Cache, AtomicCounter
     {
         $this->throwIfNotInstanceof(Cache::class);
 
+        /** @scrutinizer ignore-call */
         $result = $this->cache->setMultiple($values, $ttl);
         $this->log(sprintf(
             "setMultiple [%s] %s ttl=%s",
@@ -190,6 +197,7 @@ class LogDecorator implements Cache, AtomicCounter
     {
         $this->throwIfNotInstanceof(Cache::class);
 
+        /** @scrutinizer ignore-call */
         $result = $this->cache->deleteMultiple($keys);
         $this->log(sprintf(
             "deleteMultiple [%s] %s",
@@ -207,6 +215,7 @@ class LogDecorator implements Cache, AtomicCounter
     {
         $this->throwIfNotInstanceof(Cache::class);
 
+        /** @scrutinizer ignore-call */
         $result = $this->cache->has($key);
         $this->log(sprintf(
             "has %s %s",
@@ -224,6 +233,7 @@ class LogDecorator implements Cache, AtomicCounter
     {
         $this->throwIfNotInstanceof(AtomicCounter::class);
 
+        /** @scrutinizer ignore-call */
         $result = $this->cache->increment($key, $step, $ttl);
         $this->log(sprintf(
             "increment %s by %d %s, value=%d",
@@ -243,6 +253,7 @@ class LogDecorator implements Cache, AtomicCounter
     {
         $this->throwIfNotInstanceof(AtomicCounter::class);
 
+        /** @scrutinizer ignore-call */
         $result = $this->cache->decrement($key, $step, $ttl);
         $this->log(sprintf(
             "decrement %s by %d %s, value=%d",
