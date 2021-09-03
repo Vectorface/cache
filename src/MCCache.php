@@ -58,7 +58,7 @@ class MCCache implements Cache, AtomicCounter
      */
     public function set($key, $value, $ttl = null)
     {
-        return $this->mc->set($this->key($key), $value, null, $this->ttl($ttl));
+        return $this->mc->set($this->key($key), $value, 0, $this->ttl($ttl));
     }
 
     /**
@@ -156,7 +156,7 @@ class MCCache implements Cache, AtomicCounter
 
         // If the key already exists, this is a no-op, otherwise it ensures the key is created.
         // See https://www.php.net/manual/en/memcache.increment.php#90864
-        $this->mc->add($key, 0, null, $this->ttl($ttl));
+        $this->mc->add($key, 0, 0, $this->ttl($ttl));
 
         return $this->mc->increment($key, $this->step($step));
     }
@@ -170,7 +170,7 @@ class MCCache implements Cache, AtomicCounter
 
         // If the key already exists, this is a no-op, otherwise it ensures the key is created.
         // See https://www.php.net/manual/en/memcache.increment.php#90864
-        $this->mc->add($key, 0, null, $this->ttl($ttl));
+        $this->mc->add($key, 0, 0, $this->ttl($ttl));
 
         return $this->mc->decrement($key, $this->step($step));
     }
