@@ -58,7 +58,7 @@ class MCCache implements Cache
      */
     public function set($key, $value, $ttl = null)
     {
-        return $this->mc->set($this->key($key), $value, null, $this->ttl($ttl));
+        return $this->mc->set($this->key($key), $value, 0, $this->ttl($ttl));
     }
 
     /**
