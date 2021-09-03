@@ -2,13 +2,14 @@
 
 namespace Vectorface\Tests\Cache;
 
+use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Cache\NullCache;
 use PHPUnit\Framework\TestCase;
 
 class NullCacheTest extends TestCase
 {
     /**
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws CacheException
      */
     public function testNullCache()
     {
@@ -24,5 +25,7 @@ class NullCacheTest extends TestCase
         $this->assertFalse($cache->setMultiple(['foo' => 'bar']));
         $this->assertFalse($cache->deleteMultiple(['foo', 'bar']));
         $this->assertFalse($cache->has('foo'));
+        $this->assertFalse($cache->increment('foo'));
+        $this->assertFalse($cache->decrement('foo'));
     }
 }

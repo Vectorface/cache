@@ -3,7 +3,9 @@
 
 namespace Vectorface\Tests\Cache\Helpers;
 
-class FakeLogger implements \Psr\Log\LoggerInterface
+use Psr\Log\LoggerInterface;
+
+class FakeLogger implements LoggerInterface
 {
     private $lastMessage;
 

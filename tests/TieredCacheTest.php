@@ -2,6 +2,8 @@
 
 namespace Vectorface\Tests\Cache;
 
+use InvalidArgumentException;
+use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Cache\NullCache;
 use Vectorface\Cache\PHPCache;
 use Vectorface\Cache\TieredCache;
@@ -10,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 class TieredCacheTest extends TestCase
 {
     /**
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws CacheException
      */
     public function testTieredCache()
     {
@@ -37,7 +39,7 @@ class TieredCacheTest extends TestCase
 
     public function testBadArg()
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         new TieredCache('foo');
     }

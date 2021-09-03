@@ -16,7 +16,7 @@ class CacheHelper
      *     return $giantDataSet;
      * }
      *
-     * One could cache this by adding cache calls to the top/bottom. CacheHelper::fetch can automatate this:
+     * One could cache this by adding cache calls to the top/bottom. CacheHelper::fetch can automate this:
      *
      * function getLargeDataset($arg1, $arg2) {
      *     $key = "SomeClass::LargeDataset($arg1,$arg2)";
@@ -30,6 +30,7 @@ class CacheHelper
      * @param mixed[] $args The arguments to be passed to the callback, if it needs to be called.
      * @param int $ttl If a value is to be set in the cache, set this expiry time (in seconds).
      * @return mixed The value stored in the cache, or returned by the callback.
+     * @throws Exception\CacheException
      */
     public static function fetch(Cache $cache, string $key, callable $callback, array $args = [], $ttl = 300)
     {

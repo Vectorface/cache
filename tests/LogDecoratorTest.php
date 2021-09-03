@@ -2,18 +2,24 @@
 
 namespace Vectorface\Tests\Cache;
 
+use InvalidArgumentException;
+use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+use ReflectionException;
+use stdClass;
+use Vectorface\Cache\AtomicCounter;
+use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Cache\NullCache;
 use Vectorface\Cache\PHPCache;
 use Vectorface\Cache\LogDecorator;
 use Vectorface\Tests\Cache\Helpers\FakeLogger;
 
-class LogDecoratorTest extends \PHPUnit\Framework\TestCase
+class LogDecoratorTest extends TestCase
 {
     /**
-     * @test
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws CacheException
      */
-    public function synopsis()
+    public function testSynopsis()
     {
         $cache = new PHPCache();
         $logger = new FakeLogger();
@@ -56,10 +62,16 @@ class LogDecoratorTest extends \PHPUnit\Framework\TestCase
 
         $this->assertTrue($loggedCache->deleteMultiple(['foo', 'baz']));
         $this->assertEquals("debug: deleteMultiple [foo, baz] SUCCESS", $logger->getLastMessage());
+
+        $this->assertEquals(1, $loggedCache->increment("counter"));
+        $this->assertEquals("debug: increment counter by 1 SUCCESS, value=1", $logger->getLastMessage());
+
+        $this->assertEquals(0, $loggedCache->decrement("counter"));
+        $this->assertEquals("debug: decrement counter by 1 SUCCESS, value=0", $logger->getLastMessage());
     }
 
     /**
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws CacheException
      */
     public function testFailures()
     {
@@ -91,10 +103,22 @@ class LogDecoratorTest extends \PHPUnit\Framework\TestCase
         $result = $loggedCache->flush();
         $this->assertEquals(false, $result);
         $this->assertEquals("debug: flush FAILURE", $logger->getLastMessage());
+
+        try {
+            $loggedCache->increment("counter");
+        } catch (CacheException $e) {
+            $this->assertEquals($e->getMessage(), "This decorated instance does not implement " . AtomicCounter::class);
+        }
+
+        try {
+            $loggedCache->decrement("counter");
+        } catch (CacheException $e) {
+            $this->assertEquals($e->getMessage(), "This decorated instance does not implement " . AtomicCounter::class);
+        }
     }
 
     /**
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws CacheException
      */
     public function testLoggerNotPresent()
     {
@@ -104,8 +128,26 @@ class LogDecoratorTest extends \PHPUnit\Framework\TestCase
 
     public function testInvalidLevel()
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         new LogDecorator(new NullCache(), null, "can't log this; na na na na, na na, na na!");
+    }
+
+    /**
+     * @throws CacheException
+     * @throws ReflectionException
+     */
+    public function testInvalidClass()
+    {
+        $this->expectException(CacheException::class);
+
+        $decorator = new LogDecorator(new NullCache());
+
+        $class = new ReflectionClass($decorator);
+        $prop = $class->getProperty('cache');
+        $prop->setAccessible(true);
+        $prop->setValue($decorator, new stdClass());
+
+        $decorator->clean();
     }
 }

@@ -38,7 +38,7 @@ use Vectorface\Cache\Common\PSR16Util;
  *     KEY expires (expires)
  * ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
  */
-class SQLCache implements Cache
+class SQLCache implements Cache, AtomicCounter
 {
     use PSR16Util;
 
@@ -292,6 +292,78 @@ class SQLCache implements Cache
             return false;
         }
         return $stmt->fetchColumn() ? true : false;
+    }
+
+    /**
+     * @inheritDoc
+     * @throws Exception\CacheException
+     */
+    public function increment($key, $step = 1, $ttl = null)
+    {
+        $step = $this->step($step);
+
+        try {
+            $result = $this->conn->beginTransaction();
+            if (!$result) {
+                return false;
+            }
+
+            $current = $this->get($key);
+            $next = ($current ?? 0) + $step;
+            $result = $this->set($key, $next, ($current === null ? $ttl : null));
+            if (!$result) {
+                $this->conn->rollBack();
+                return false;
+            }
+
+            $result = $this->conn->commit();
+            if (!$result) {
+                return false;
+            }
+        } catch (PDOException $e) {
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
+            return false;
+        }
+
+        return $next;
+    }
+
+    /**
+     * @inheritDoc
+     * @throws Exception\CacheException
+     */
+    public function decrement($key, $step = 1, $ttl = null)
+    {
+        $step = $this->step($step);
+
+        try {
+            $result = $this->conn->beginTransaction();
+            if (!$result) {
+                return false;
+            }
+
+            $current = $this->get($key);
+            $next = ($current ?? 0) - $step;
+            $result = $this->set($key, $next, ($current === null ? $ttl : null));
+            if (!$result) {
+                $this->conn->rollBack();
+                return false;
+            }
+
+            $result = $this->conn->commit();
+            if (!$result) {
+                return false;
+            }
+        } catch (PDOException $e) {
+            if ($this->conn->inTransaction()) {
+                $this->conn->rollBack();
+            }
+            return false;
+        }
+
+        return $next;
     }
 
     /**

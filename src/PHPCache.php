@@ -13,7 +13,7 @@ use Vectorface\Cache\Common\MultipleTrait;
  *
  * Capable of a huge number of requests/second
  */
-class PHPCache implements Cache
+class PHPCache implements Cache, AtomicCounter
 {
     use MultipleTrait, PSR16Util;
 
@@ -102,5 +102,29 @@ class PHPCache implements Cache
     public function has($key)
     {
         return $this->get($this->key($key)) !== null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function increment($key, $step = 1, $ttl = null)
+    {
+        $key = $this->key($key);
+        $exists = $this->has($key);
+        $newValue = $this->get($key, 0) + $this->step($step);
+        $this->set($key, $newValue, (!$exists ? $ttl : null));
+        return $newValue;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function decrement($key, $step = 1, $ttl = null)
+    {
+        $key = $this->key($key);
+        $exists = $this->has($key);
+        $newValue = $this->get($key, 0) - $this->step($step);
+        $this->set($key, $newValue, (!$exists ? $ttl : null));
+        return $newValue;
     }
 }

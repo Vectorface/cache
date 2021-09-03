@@ -4,10 +4,10 @@ namespace Vectorface\Cache\Common;
 
 use DateInterval;
 use DateTime;
+use Exception;
 use Traversable;
 use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Cache\Exception\InvalidArgumentException as CacheArgumentException;
-
 
 /**
  * Utility methods common to many PSR-16 cache implementations
@@ -76,6 +76,22 @@ trait PSR16Util
     }
 
     /**
+     * Enforce a valid step value for increment/decrement methods
+     *
+     * @param mixed $step
+     * @return int
+     * @throws CacheArgumentException Thrown if the step is not a legal value
+     */
+    protected function step($step)
+    {
+        if (!is_integer($step)) {
+            throw new CacheArgumentException("step must be an integer");
+        }
+
+        return $step;
+    }
+
+    /**
      * Add defaults to an array of values from a cache
      *
      * Note: This does NOT check the keys array
@@ -100,7 +116,7 @@ trait PSR16Util
      *
      * @param mixed $ttl Takes a valid TTL argument and converts to an integer TTL
      * @throws CacheArgumentException|CacheException Throws if the argument is not a valid TTL
-     * @return int
+     * @return int|null
      */
     public static function ttl($ttl)
     {
@@ -127,7 +143,7 @@ trait PSR16Util
         try {
             $now = new $dateClass();
             $exp = (new $dateClass())->add($interval);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw new CacheException("Could not get current DateTime");
         }
 
