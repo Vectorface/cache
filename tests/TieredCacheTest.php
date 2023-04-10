@@ -37,6 +37,29 @@ class TieredCacheTest extends TestCase
         $this->assertFalse($tiered->deleteMultiple(['foo', 'baz'])); // one op failed, so all fail.
     }
 
+    /**
+     * @throws CacheException
+     */
+    public function testTieredSet()
+    {
+        $php1 = new PHPCache();
+        $php2 = new PHPCache();
+        $tiered = new TieredCache($php1, $php2);
+
+        $this->assertNull($tiered->get('foo'));
+        $this->assertTrue($tiered->set('foo', 'bar'));
+        $this->assertEquals('bar', $tiered->get('foo'));
+        $this->assertEquals('bar', $php1->get('foo'));
+        $this->assertEquals('bar', $php2->get('foo'));
+        $this->assertTrue($tiered->flush());
+        $this->assertNull($tiered->get('foo'));
+
+        $this->assertTrue($tiered->setMultiple(['foo' => 'bar', 'baz' => 'quux']));
+        $this->assertEquals(['foo' => 'bar', 'baz' => 'quux'], $tiered->getMultiple(['foo', 'baz']));
+        $this->assertEquals('quux', $php1->get('baz'));
+        $this->assertEquals('bar', $php2->get('foo'));
+    }
+
     public function testBadArg()
     {
         $this->expectException(InvalidArgumentException::class);
