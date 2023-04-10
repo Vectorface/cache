@@ -179,7 +179,8 @@ class TieredCache implements Cache
     {
         $success = true;
         foreach ($this->caches as $cache) {
-            $success = $success && ([$cache, $call])(...$args);
+            $result = ([$cache, $call])(...$args);
+            $success = $success && $result;
         }
         return $success;
     }
@@ -195,7 +196,8 @@ class TieredCache implements Cache
     {
         $success = false;
         foreach ($this->caches as $cache) {
-            $success = $success || ([$cache, $call])(...$args);
+            $result = ([$cache, $call])(...$args);
+            $success = $success || $result;
         }
         return $success;
     }
