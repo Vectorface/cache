@@ -4,61 +4,53 @@
 namespace Vectorface\Tests\Cache\Helpers;
 
 use Psr\Log\LoggerInterface;
+use Stringable;
 
 class FakeLogger implements LoggerInterface
 {
     private $lastMessage;
 
-    #[\ReturnTypeWillChange]
-    public function emergency($message, array $context = [])
+    public function emergency(Stringable|string $message, array $context = []): void
     {
         $this->log(__FUNCTION__, $message, $context);
     }
 
-    #[\ReturnTypeWillChange]
-    public function alert($message, array $context = [])
+    public function alert(Stringable|string $message, array $context = []): void
     {
         $this->log(__FUNCTION__, $message, $context);
     }
 
-    #[\ReturnTypeWillChange]
-    public function critical($message, array $context = [])
+    public function critical(Stringable|string $message, array $context = []): void
     {
         $this->log(__FUNCTION__, $message, $context);
     }
 
-    #[\ReturnTypeWillChange]
-    public function error($message, array $context = [])
+    public function error(Stringable|string $message, array $context = []): void
     {
         $this->log(__FUNCTION__, $message, $context);
     }
 
-    #[\ReturnTypeWillChange]
-    public function warning($message, array $context = [])
+    public function warning(Stringable|string $message, array $context = []): void
     {
         $this->log(__FUNCTION__, $message, $context);
     }
 
-    #[\ReturnTypeWillChange]
-    public function notice($message, array $context = [])
+    public function notice(Stringable|string $message, array $context = []): void
     {
         $this->log(__FUNCTION__, $message, $context);
     }
 
-    #[\ReturnTypeWillChange]
-    public function info($message, array $context = [])
+    public function info(Stringable|string $message, array $context = []): void
     {
         $this->log(__FUNCTION__, $message, $context);
     }
 
-    #[\ReturnTypeWillChange]
-    public function debug($message, array $context = [])
+    public function debug(Stringable|string $message, array $context = []): void
     {
         $this->log(__FUNCTION__, $message, $context);
     }
 
-    #[\ReturnTypeWillChange]
-    public function log($level, $message, array $context = [])
+    public function log($level, $message, array $context = []): void
     {
         $this->lastMessage = sprintf(
             "%s: %s%s",
