@@ -55,37 +55,42 @@ class SQLCache implements Cache, AtomicCounter
     /**
      * Statement for deleting expired entries from the cache.
      */
-    const CLEAN_SQL = 'DELETE FROM cache WHERE expires<=UNIX_TIMESTAMP()';
+    const CLEAN_SQL = 'DELETE FROM cache WHERE expires <= UNIX_TIMESTAMP()';
 
     /**
      * Statement for inserting or updating entries in the cache.
      */
-    const SET_SQL = 'INSERT INTO cache (entry,value,expires) VALUES(?,?,?)';
+    const SET_SQL = 'INSERT INTO cache (entry, value, expires) VALUES(?, ?, ?)';
 
     /**
      * Statement for updating if an entry already exists.
      */
-    const UPDATE_SQL = 'UPDATE cache SET value=?, expires=? WHERE entry=?';
+    const UPDATE_SQL = 'UPDATE cache SET value = ?, expires = ? WHERE entry = ?';
+
+    /**
+     * Statement for atomically updating a stored count if an entry already exists.
+     */
+    const UPDATE_INCREMENT_SQL = 'UPDATE cache SET value = ? WHERE entry = ?';
 
     /**
      * Statement for checking if an entry exists
      */
-    const HAS_SQL = 'SELECT COUNT(*) AS num FROM cache WHERE entry=? AND expires>=UNIX_TIMESTAMP()';
+    const HAS_SQL = 'SELECT COUNT(*) AS num FROM cache WHERE entry = ? AND expires >= UNIX_TIMESTAMP()';
 
     /**
      * Statement for retrieving an entry from the cache
      */
-    const GET_SQL = 'SELECT value FROM cache WHERE entry=? AND expires>=UNIX_TIMESTAMP()';
+    const GET_SQL = 'SELECT value FROM cache WHERE entry = ? AND expires >= UNIX_TIMESTAMP()';
 
     /**
      * Statement for retrieving entries from the cache (no statement caching)
      */
-    const MGET_SQL = 'SELECT entry,value FROM cache WHERE entry IN(%s) AND expires>=UNIX_TIMESTAMP()';
+    const MGET_SQL = 'SELECT entry, value FROM cache WHERE entry IN(%s) AND expires >= UNIX_TIMESTAMP()';
 
     /**
      * Statement for deleting an entry from the cache
      */
-    const DELETE_SQL = 'DELETE FROM cache WHERE entry=?';
+    const DELETE_SQL = 'DELETE FROM cache WHERE entry = ?';
 
     /**
      * Statement for deleting entries from the cache (no statement caching)
@@ -291,7 +296,7 @@ class SQLCache implements Cache, AtomicCounter
         } catch (PDOException $e) {
             return false;
         }
-        return $stmt->fetchColumn() ? true : false;
+        return (bool)$stmt->fetchColumn();
     }
 
     /**
@@ -310,7 +315,12 @@ class SQLCache implements Cache, AtomicCounter
 
             $current = $this->get($key);
             $next = ($current ?? 0) + $step;
-            $result = $this->set($key, $next, ($current === null ? $ttl : null));
+            if ($current !== null) {
+                $stmt = $this->getStatement(__METHOD__, self::UPDATE_INCREMENT_SQL);
+                $result = $stmt->execute([$next, $key]) && $stmt->rowCount() === 1;
+            } else {
+                $result = $this->set($key, $next, $ttl);
+            }
             if (!$result) {
                 $this->conn->rollBack();
                 return false;
@@ -346,7 +356,12 @@ class SQLCache implements Cache, AtomicCounter
 
             $current = $this->get($key);
             $next = ($current ?? 0) - $step;
-            $result = $this->set($key, $next, ($current === null ? $ttl : null));
+            if ($current !== null) {
+                $stmt = $this->getStatement(__METHOD__, self::UPDATE_INCREMENT_SQL);
+                $result = $stmt->execute([$next, $key]) && $stmt->rowCount() === 1;
+            } else {
+                $result = $this->set($key, $next, $ttl);
+            }
             if (!$result) {
                 $this->conn->rollBack();
                 return false;
@@ -375,12 +390,9 @@ class SQLCache implements Cache, AtomicCounter
      * @param string $sql The SQL statement associated with the given method.
      * @return PDOStatement Returns the prepared statement for the given method.
      */
-    private function getStatement($method, $sql)
+    private function getStatement(string $method, string $sql) : PDOStatement
     {
-        if (empty($this->statements[$method])) {
-            $this->statements[$method] = $this->conn->prepare($sql);
-        }
-        return $this->statements[$method];
+        return $this->statements[$method] ??= $this->conn->prepare($sql);
     }
 
     /**
@@ -390,7 +402,7 @@ class SQLCache implements Cache, AtomicCounter
      * @return string The key, or the hash of the key parameter if it goes beyond maximum length
      * @private Public for testing
      */
-    public static function hashKey($key)
+    public static function hashKey(string $key) : string
     {
         return (strlen($key) > self::MAX_KEY_LEN) ? hash('sha256', $key) : $key;
     }
