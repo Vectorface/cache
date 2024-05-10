@@ -6,6 +6,7 @@
 
 namespace Vectorface\Cache;
 
+use DateInterval;
 use PDO;
 use PDOStatement;
 use PDOException;
@@ -136,7 +137,10 @@ class SQLCache implements Cache, AtomicCounter
             return $default;
         }
         $result = $stmt->fetchColumn();
-        return empty($result) ? $default : unserialize($result);
+        if (empty($result)) {
+            return $default;
+        }
+        return unserialize($result);
     }
 
     /**
@@ -164,9 +168,7 @@ class SQLCache implements Cache, AtomicCounter
 
         $return = array_map('unserialize', $result);
         foreach ($keys as $key) {
-            if (!isset($return[$key])) {
-                $return[$key] = $default;
-            }
+            $return[$key] ??= $default;
         }
         return $return;
     }
@@ -317,7 +319,7 @@ class SQLCache implements Cache, AtomicCounter
             $next = ($current ?? 0) + $step;
             if ($current !== null) {
                 $stmt = $this->getStatement(__METHOD__, self::UPDATE_INCREMENT_SQL);
-                $result = $stmt->execute([$next, $key]) && $stmt->rowCount() === 1;
+                $result = $stmt->execute([serialize($next), $key]) && $stmt->rowCount() === 1;
             } else {
                 $result = $this->set($key, $next, $ttl);
             }
@@ -330,14 +332,13 @@ class SQLCache implements Cache, AtomicCounter
             if (!$result) {
                 return false;
             }
+            return $next;
         } catch (PDOException $e) {
             if ($this->conn->inTransaction()) {
                 $this->conn->rollBack();
             }
             return false;
         }
-
-        return $next;
     }
 
     /**
@@ -346,39 +347,7 @@ class SQLCache implements Cache, AtomicCounter
      */
     public function decrement($key, $step = 1, $ttl = null)
     {
-        $step = $this->step($step);
-
-        try {
-            $result = $this->conn->beginTransaction();
-            if (!$result) {
-                return false;
-            }
-
-            $current = $this->get($key);
-            $next = ($current ?? 0) - $step;
-            if ($current !== null) {
-                $stmt = $this->getStatement(__METHOD__, self::UPDATE_INCREMENT_SQL);
-                $result = $stmt->execute([$next, $key]) && $stmt->rowCount() === 1;
-            } else {
-                $result = $this->set($key, $next, $ttl);
-            }
-            if (!$result) {
-                $this->conn->rollBack();
-                return false;
-            }
-
-            $result = $this->conn->commit();
-            if (!$result) {
-                return false;
-            }
-        } catch (PDOException $e) {
-            if ($this->conn->inTransaction()) {
-                $this->conn->rollBack();
-            }
-            return false;
-        }
-
-        return $next;
+        return $this->increment($key, -$step, $ttl);
     }
 
     /**
