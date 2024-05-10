@@ -16,7 +16,7 @@ interface AtomicCounter
      *
      * @param string $key The unique cache key of the item to increment.
      * @param int $step Increment the key by this amount, defaults to 1.
-     * @param null|int|DateInterval $ttl Optional. The TTL value of this item. If no value is sent and
+     * @param DateInterval|int|null $ttl Optional. The TTL value of this item. If no value is sent and
      *                                   the driver supports TTL then the library may set a default value
      *                                   for it or let the driver take care of that.
      *
@@ -26,7 +26,7 @@ interface AtomicCounter
      *   MUST be thrown if the $key string is not a legal value.
      *   or if the $step amount is not a legal value.
      */
-    public function increment($key, $step = 1, $ttl = null);
+    public function increment(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false;
 
     /**
      * Decrement the value stored under the given cache key
@@ -43,5 +43,5 @@ interface AtomicCounter
      *   MUST be thrown if the $key string is not a legal value
      *   or if the $step amount is not a legal value.
      */
-    public function decrement($key, $step = 1, $ttl = null);
+    public function decrement(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false;
 }

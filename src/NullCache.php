@@ -2,6 +2,8 @@
 
 namespace Vectorface\Cache;
 
+use DateInterval;
+
 /**
  * A cache that caches nothing and always fails.
  */
@@ -10,7 +12,7 @@ class NullCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function get($key, $default = null)
+    public function get(string $key, mixed $default = null) : mixed
     {
         return $default;
     }
@@ -18,7 +20,7 @@ class NullCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function set($key, $value, $ttl = null)
+    public function set(string $key, mixed $value, DateInterval|int|null $ttl = null) : bool
     {
         return false;
     }
@@ -26,7 +28,7 @@ class NullCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function delete($key)
+    public function delete(string $key) : bool
     {
         return false;
     }
@@ -34,7 +36,7 @@ class NullCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function clean()
+    public function clean() : bool
     {
         return false;
     }
@@ -42,7 +44,7 @@ class NullCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function flush()
+    public function flush() : bool
     {
         return false;
     }
@@ -50,7 +52,7 @@ class NullCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function clear()
+    public function clear() : bool
     {
         return false;
     }
@@ -58,7 +60,7 @@ class NullCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function getMultiple($keys, $default = null)
+    public function getMultiple(iterable $keys, mixed $default = null) : iterable
     {
         $defaults = [];
         foreach ($keys as $key) {
@@ -70,7 +72,7 @@ class NullCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function setMultiple($values, $ttl = null)
+    public function setMultiple(iterable $values, DateInterval|int|null $ttl = null) : bool
     {
         return false;
     }
@@ -78,7 +80,7 @@ class NullCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function deleteMultiple($keys)
+    public function deleteMultiple(iterable $keys) : bool
     {
         return false;
     }
@@ -86,7 +88,7 @@ class NullCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function has($key)
+    public function has(string $key) : bool
     {
         return false;
     }
@@ -94,7 +96,7 @@ class NullCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function increment($key, $step = 1, $ttl = null)
+    public function increment(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
     {
         return false;
     }
@@ -102,7 +104,7 @@ class NullCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function decrement($key, $step = 1, $ttl = null)
+    public function decrement(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
     {
         return false;
     }

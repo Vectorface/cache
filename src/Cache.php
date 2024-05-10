@@ -23,7 +23,7 @@ interface Cache
      * @throws InvalidArgumentException
      *   MUST be thrown if the $key string is not a legal value.
      */
-    public function get($key, $default = null);
+    public function get(string $key, mixed $default = null) : mixed;
 
     /**
      * Persists data in the cache, uniquely referenced by a key with an optional expiration TTL time.
@@ -39,7 +39,7 @@ interface Cache
      * @throws InvalidArgumentException|CacheException
      *   MUST be thrown if the $key string is not a legal value.
      */
-    public function set($key, $value, $ttl = null);
+    public function set(string $key, mixed $value, DateInterval|int|null $ttl = null) : bool;
 
     /**
      * Delete an item from the cache by its unique key.
@@ -51,14 +51,14 @@ interface Cache
      * @throws InvalidArgumentException
      *   MUST be thrown if the $key string is not a legal value.
      */
-    public function delete($key);
+    public function delete(string $key) : bool;
 
     /**
      * Wipes clean the entire cache's keys.
      *
      * @return bool True on success and false on failure.
      */
-    public function clear();
+    public function clear() : bool;
 
     /**
      * Obtains multiple cache items by their unique keys.
@@ -66,14 +66,14 @@ interface Cache
      * @param array|Traversable $keys    A list of keys that can obtained in a single operation.
      * @param mixed              $default Default value to return for keys that do not exist.
      *
-     * @return array|Traversable A list of key => value pairs. Cache keys that do not exist or are stale will
+     * @return iterable A list of key => value pairs. Cache keys that do not exist or are stale will
      *   have $default as value.
      *
      * @throws InvalidArgumentException
      *   MUST be thrown if $keys is neither an array nor a Traversable,
      *   or if any of the $keys are not a legal value.
      */
-    public function getMultiple($keys, $default = null);
+    public function getMultiple(iterable $keys, mixed $default = null) : iterable;
 
     /**
      * Persists a set of key => value pairs in the cache, with an optional TTL.
@@ -89,7 +89,7 @@ interface Cache
      *   MUST be thrown if $values is neither an array nor a Traversable,
      *   or if any of the $values are not a legal value.
      */
-    public function setMultiple($values, $ttl = null);
+    public function setMultiple(iterable $values, DateInterval|int|null $ttl = null) : bool;
 
     /**
      * Deletes multiple cache items in a single operation.
@@ -102,7 +102,7 @@ interface Cache
      *   MUST be thrown if $keys is neither an array nor a Traversable,
      *   or if any of the $keys are not a legal value.
      */
-    public function deleteMultiple($keys);
+    public function deleteMultiple(iterable $keys) : bool;
 
     /**
      * Determines whether an item is present in the cache.
@@ -119,19 +119,19 @@ interface Cache
      * @throws InvalidArgumentException
      *   MUST be thrown if the $key string is not a legal value.
      */
-    public function has($key);
+    public function has(string $key) : bool;
 
     /**
      * Manually clean out entries older than their TTL
      *
      * @return bool True if successful, false otherwise.
      */
-    public function clean();
+    public function clean() : bool;
 
     /**
      * Clear the cache. Equivalent to CacheInterface::clear()
      *
      * @return bool True if successful, false otherwise.
      */
-    public function flush();
+    public function flush() : bool;
 }

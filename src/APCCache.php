@@ -2,6 +2,7 @@
 
 namespace Vectorface\Cache;
 
+use DateInterval;
 use Vectorface\Cache\Common\PSR16Util;
 
 /**
@@ -29,15 +30,13 @@ class APCCache implements Cache, AtomicCounter
 
     /**
      * The module name that defines the APC methods.
-     *
-     * @var string
      */
-    private $apcModule = 'apcu';
+    private string $apcModule = 'apcu';
 
     /**
      * @inheritDoc
      */
-    public function get($key, $default = null)
+    public function get(string $key, mixed $default = null) : mixed
     {
         $value = $this->call('fetch', $this->key($key));
         return ($value === false) ? $default : $value;
@@ -46,7 +45,7 @@ class APCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function set($key, $value, $ttl = null)
+    public function set(string $key, mixed $value, DateInterval|int|null $ttl = null) : bool
     {
         return $this->call('store', $this->key($key), $value, $this->ttl($ttl));
     }
@@ -54,7 +53,7 @@ class APCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function delete($key)
+    public function delete($key) : bool
     {
         return $this->call('delete', $this->key($key));
     }
@@ -62,7 +61,7 @@ class APCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function clean()
+    public function clean() : bool
     {
         return false;
     }
@@ -70,7 +69,7 @@ class APCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function flush()
+    public function flush() : bool
     {
         return $this->call('clear_cache');
     }
@@ -78,7 +77,7 @@ class APCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function clear()
+    public function clear() : bool
     {
         return $this->flush();
     }
@@ -86,7 +85,7 @@ class APCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function getMultiple($keys, $default = null)
+    public function getMultiple(iterable $keys, mixed $default = null) : iterable
     {
         $keys = $this->keys($keys);
         return $this->defaults(
@@ -99,7 +98,7 @@ class APCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function setMultiple($values, $ttl = null)
+    public function setMultiple(iterable $values, DateInterval|int|null $ttl = null) : bool
     {
         $results = $this->call(
             'store',
@@ -107,13 +106,13 @@ class APCCache implements Cache, AtomicCounter
             null,
             $this->ttl($ttl)
         );
-        return array_reduce($results, function($carry, $item) { return $carry && $item; }, true);
+        return array_reduce($results, static fn($carry, $item) => $carry && $item, true);
     }
 
     /**
      * @inheritDoc
      */
-    public function deleteMultiple($keys)
+    public function deleteMultiple(iterable $keys) : bool
     {
         $success = true;
         foreach ($this->keys($keys) as $key) {
@@ -126,7 +125,7 @@ class APCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function has($key)
+    public function has(string $key) : bool
     {
         return $this->call('exists', $this->key($key));
     }
@@ -134,7 +133,7 @@ class APCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function increment($key, $step = 1, $ttl = null)
+    public function increment(string $key, int $step = 1, DateInterval|int|null  $ttl = null) : int|false
     {
         return $this->call('inc', $this->key($key), $this->step($step), null, $this->ttl($ttl));
     }
@@ -142,7 +141,7 @@ class APCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function decrement($key, $step = 1, $ttl = null)
+    public function decrement(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
     {
         return $this->call('dec', $this->key($key), $this->step($step), null, $this->ttl($ttl));
     }
@@ -153,7 +152,7 @@ class APCCache implements Cache, AtomicCounter
      * @param mixed ...$args Function arguments
      * @return mixed The result passed through from apc(u)_$call
      */
-    private function call($call, ...$args)
+    private function call(string $call, ...$args) : mixed
     {
         $function = "{$this->apcModule}_{$call}";
 

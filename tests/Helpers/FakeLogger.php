@@ -8,7 +8,7 @@ use Stringable;
 
 class FakeLogger implements LoggerInterface
 {
-    private $lastMessage;
+    private string $lastMessage;
 
     public function emergency(Stringable|string $message, array $context = []): void
     {
@@ -60,7 +60,7 @@ class FakeLogger implements LoggerInterface
         );
     }
 
-    public function getLastMessage()
+    public function getLastMessage() : string
     {
         return $this->lastMessage;
     }
