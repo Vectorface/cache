@@ -196,33 +196,7 @@ class RedisCache implements Cache, AtomicCounter
      */
     public function increment($key, $step = 1, $ttl = null)
     {
-        $ttl = $this->ttl($ttl);
-        $key = $this->key($key);
-        $step = $this->step($step);
-
-        // We can't just use incrby because it doesn't support expiry,
-        // so we use multi-exec instead.
-        $this->redis->multi();
-
-        // Set only if the key does not exist (safely sets expiry only if doesn't exist).
-        // The two redis clients have different advanced set APIs for this.
-        // They also don't support null or TTLs under 1, so we need to just use setnx in that case.
-        if ($ttl === null || $ttl < 1) {
-            $this->redis->setnx($key, 0);
-        } else {
-            if ($this->redis instanceof Redis) {
-                $this->redis->set($key, 0, ['NX', 'EX' => $ttl]);
-            } else {
-                $this->redis->set($key, 0, $ttl, null, 'NX');
-            }
-        }
-
-        $this->redis->incrby($key, $step);
-
-        $result = $this->redis->exec();
-
-        // Since we ran two commands, the 1 index should be the incrby result
-        return $result[1] ?? false;
+        return $this->atomicCounter('incrby', $key, $step, $ttl);
     }
 
     /**
@@ -230,11 +204,16 @@ class RedisCache implements Cache, AtomicCounter
      */
     public function decrement($key, $step = 1, $ttl = null)
     {
+        return $this->atomicCounter('decrby', $key, $step, $ttl);
+    }
+
+    private function atomicCounter($method, $key, $step = 1, $ttl = null)
+    {
         $ttl = $this->ttl($ttl);
         $key = $this->key($key);
         $step = $this->step($step);
 
-        // We can't just use incrby because it doesn't support expiry,
+        // We can't just use incrby/decrby because it doesn't support expiry,
         // so we use multi-exec instead.
         $this->redis->multi();
 
@@ -251,11 +230,11 @@ class RedisCache implements Cache, AtomicCounter
             }
         }
 
-        $this->redis->decrby($key, $step);
+        $this->redis->{$method}($key, $step);
 
         $result = $this->redis->exec();
 
-        // Since we ran two commands, the 1 index should be the incrby result
+        // Since we ran two commands, the 1 index should be the incrby/decrby result
         return $result[1] ?? false;
     }
 

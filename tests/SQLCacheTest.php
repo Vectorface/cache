@@ -8,6 +8,7 @@ namespace Vectorface\Tests\Cache;
 use InvalidArgumentException;
 use PDO;
 use PDOException;
+use Vectorface\Cache\Cache;
 use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Cache\SQLCache;
 
@@ -16,7 +17,7 @@ class SQLCacheTest extends GenericCacheTest
     private $pdo;
 
     /** @var SQLCache */
-    protected $cache;
+    protected Cache $cache;
 
     protected function setUp(): void
     {

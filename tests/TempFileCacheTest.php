@@ -4,6 +4,7 @@ namespace Vectorface\Tests\Cache;
 
 use Exception;
 use Psr\SimpleCache\InvalidArgumentException;
+use Vectorface\Cache\Cache;
 use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Tests\Cache\Helpers\FakeRealpath;
 use Vectorface\Cache\TempFileCache;
@@ -11,7 +12,7 @@ use Vectorface\Cache\TempFileCache;
 class TempFileCacheTest extends GenericCacheTest
 {
     /** @var TempFileCache */
-    protected $cache;
+    protected Cache $cache;
 
     protected function setUp(): void
     {

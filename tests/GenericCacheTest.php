@@ -15,12 +15,8 @@ use Vectorface\Cache\SimpleCacheAdapter;
 
 abstract class GenericCacheTest extends TestCase
 {
-    /**
-     * The cache entry to be set by child classes.
-     *
-     * @var Cache
-     */
-    protected $cache;
+    /** The cache entry to be set by child classes. */
+    protected Cache $cache;
 
     public function testClass()
     {
@@ -32,12 +28,9 @@ abstract class GenericCacheTest extends TestCase
 
     /**
      * @dataProvider cacheDataProvider
-     * @param string $key
-     * @param mixed $data
-     * @param int $ttl
      * @throws IInvalidArgumentException|CacheException
      */
-    public function testGet($key, $data, $ttl)
+    public function testGet(string $key, mixed $data, int $ttl)
     {
         foreach ($this->getCaches() as $cache) {
             $cache->set($key, $data, $ttl); /* Write */
@@ -93,17 +86,28 @@ abstract class GenericCacheTest extends TestCase
             $this->assertEquals(
                 ['foo' => 'dflt', 'bar' => 'dflt'],
                 $cache->getMultiple(
-                    (function() { yield 'foo'; yield 'bar'; })(),
+                    (function() {
+                        yield 'foo';
+                        yield 'bar';
+                    })(),
                     'dflt'
                 ),
                 "Expected the result to be populated with default values"
             );
             $this->assertTrue($cache->setMultiple(
-                (function() { yield 'foo' => 'bar'; yield 'baz' => 'quux'; })()
+                (function() {
+                    yield 'foo' => 'bar';
+                    yield 'baz' => 'quux';
+                })()
             ));
             $this->assertEquals('bar', $cache->get('foo'));
             $this->assertEquals('quux', $cache->get('baz'));
-            $this->assertTrue($cache->deleteMultiple((function() { yield 'foo'; yield 'baz'; })()));
+            $this->assertTrue($cache->deleteMultiple(
+                (function() {
+                    yield 'foo';
+                    yield 'baz';
+                })()
+            ));
         }
     }
 
@@ -192,6 +196,7 @@ abstract class GenericCacheTest extends TestCase
 
     /**
      * @throws IInvalidArgumentException
+     * @throws CacheException
      */
     public function testIncrementDecrement()
     {
