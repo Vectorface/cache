@@ -6,6 +6,7 @@
 
 namespace Vectorface\Cache;
 
+use DateInterval;
 use PDO;
 use PDOStatement;
 use PDOException;
@@ -55,37 +56,42 @@ class SQLCache implements Cache, AtomicCounter
     /**
      * Statement for deleting expired entries from the cache.
      */
-    const CLEAN_SQL = 'DELETE FROM cache WHERE expires<=UNIX_TIMESTAMP()';
+    const CLEAN_SQL = 'DELETE FROM cache WHERE expires <= UNIX_TIMESTAMP()';
 
     /**
      * Statement for inserting or updating entries in the cache.
      */
-    const SET_SQL = 'INSERT INTO cache (entry,value,expires) VALUES(?,?,?)';
+    const SET_SQL = 'INSERT INTO cache (entry, value, expires) VALUES(?, ?, ?)';
 
     /**
      * Statement for updating if an entry already exists.
      */
-    const UPDATE_SQL = 'UPDATE cache SET value=?, expires=? WHERE entry=?';
+    const UPDATE_SQL = 'UPDATE cache SET value = ?, expires = ? WHERE entry = ?';
+
+    /**
+     * Statement for atomically updating a stored count if an entry already exists.
+     */
+    const UPDATE_INCREMENT_SQL = 'UPDATE cache SET value = ? WHERE entry = ?';
 
     /**
      * Statement for checking if an entry exists
      */
-    const HAS_SQL = 'SELECT COUNT(*) AS num FROM cache WHERE entry=? AND expires>=UNIX_TIMESTAMP()';
+    const HAS_SQL = 'SELECT COUNT(*) AS num FROM cache WHERE entry = ? AND expires >= UNIX_TIMESTAMP()';
 
     /**
      * Statement for retrieving an entry from the cache
      */
-    const GET_SQL = 'SELECT value FROM cache WHERE entry=? AND expires>=UNIX_TIMESTAMP()';
+    const GET_SQL = 'SELECT value FROM cache WHERE entry = ? AND expires >= UNIX_TIMESTAMP()';
 
     /**
      * Statement for retrieving entries from the cache (no statement caching)
      */
-    const MGET_SQL = 'SELECT entry,value FROM cache WHERE entry IN(%s) AND expires>=UNIX_TIMESTAMP()';
+    const MGET_SQL = 'SELECT entry, value FROM cache WHERE entry IN(%s) AND expires >= UNIX_TIMESTAMP()';
 
     /**
      * Statement for deleting an entry from the cache
      */
-    const DELETE_SQL = 'DELETE FROM cache WHERE entry=?';
+    const DELETE_SQL = 'DELETE FROM cache WHERE entry = ?';
 
     /**
      * Statement for deleting entries from the cache (no statement caching)
@@ -93,33 +99,25 @@ class SQLCache implements Cache, AtomicCounter
     const MDELETE_SQL = 'DELETE FROM cache WHERE entry IN(%s)';
 
     /**
-     * The database connection to be used for cache operations.
-     *
-     * @var PDO
-     */
-    private $conn;
-
-    /**
      * An associative array of PDO statements used in get/set.
      *
-     * @var PDOStatement
+     * @var PDOStatement[]
      */
-    private $statements = [];
+    private array $statements = [];
 
     /**
      * Create an instance of the SQL cache.
      *
      * @param PDO $conn The database connection to use for cache operations.
      */
-    public function __construct(PDO $conn)
-    {
-        $this->conn = $conn;
-    }
+    public function __construct(
+        private PDO $conn,
+    ) {}
 
     /**
      * @inheritDoc
      */
-    public function get($key, $default = null)
+    public function get(string $key, mixed $default = null) : mixed
     {
         $key = $this->key($key);
         $key = $this->hashKey($key);
@@ -127,17 +125,20 @@ class SQLCache implements Cache, AtomicCounter
         try {
             $stmt = $this->getStatement(__METHOD__, self::GET_SQL);
             $stmt->execute([$key]);
-        } catch (PDOException $e) {
+        } catch (PDOException) {
             return $default;
         }
         $result = $stmt->fetchColumn();
-        return empty($result) ? $default : unserialize($result);
+        if (empty($result)) {
+            return $default;
+        }
+        return unserialize($result);
     }
 
     /**
      * @inheritDoc
      */
-    public function getMultiple($keys, $default = null)
+    public function getMultiple(iterable $keys, mixed $default = null) : iterable
     {
         if (empty($keys)) {
             return [];
@@ -153,15 +154,13 @@ class SQLCache implements Cache, AtomicCounter
             ));
             $stmt->execute($sqlKeys);
             $result = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
-        } catch (PDOException $e) {
+        } catch (PDOException) {
             $result = [];
         }
 
         $return = array_map('unserialize', $result);
         foreach ($keys as $key) {
-            if (!isset($return[$key])) {
-                $return[$key] = $default;
-            }
+            $return[$key] ??= $default;
         }
         return $return;
     }
@@ -170,7 +169,7 @@ class SQLCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function set($key, $value, $ttl = null)
+    public function set(string $key, mixed $value, DateInterval|int|null $ttl = null) : bool
     {
         $key = $this->key($key);
         $key = $this->hashKey($key);
@@ -181,7 +180,7 @@ class SQLCache implements Cache, AtomicCounter
         try {
             $stmt = $this->getStatement(__METHOD__ . ".insert", self::SET_SQL);
             return $stmt->execute([$key, $value, $ttl]);
-        } catch (PDOException $e) {
+        } catch (PDOException) {
             // Insert can fail if the entry exists; It's normal.
         }
 
@@ -189,7 +188,7 @@ class SQLCache implements Cache, AtomicCounter
             $stmt = $this->getStatement(__METHOD__ . ".update", self::UPDATE_SQL);
             $success = $stmt->execute([$value, $ttl, $key]);
             return $success && $stmt->rowCount() === 1;
-        } catch (PDOException $e) {
+        } catch (PDOException) {
             return false;
         }
     }
@@ -197,7 +196,7 @@ class SQLCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function setMultiple($values, $ttl = null)
+    public function setMultiple(iterable $values, DateInterval|int|null $ttl = null) : bool
     {
         $success = true;
         foreach ($this->values($values) as $key => $value) {
@@ -209,14 +208,14 @@ class SQLCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function delete($key)
+    public function delete(string $key) : bool
     {
         $key = $this->hashKey($this->key($key));
 
         try {
             $stmt = $this->getStatement(__METHOD__, self::DELETE_SQL);
             return $stmt->execute([$key]);
-        } catch (PDOException $e) {
+        } catch (PDOException) {
             return false;
         }
     }
@@ -224,7 +223,7 @@ class SQLCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function deleteMultiple($keys)
+    public function deleteMultiple(iterable $keys) : bool
     {
         if (empty($keys)) {
             return true;
@@ -238,7 +237,7 @@ class SQLCache implements Cache, AtomicCounter
                 implode(',', array_fill(0, count($keysArray), '?'))
             ));
             $stmt->execute($keysArray);
-        } catch (PDOException $e) {
+        } catch (PDOException) {
             return false;
         }
         return true;
@@ -247,11 +246,11 @@ class SQLCache implements Cache, AtomicCounter
     /**
      * @inheritdoc
      */
-    public function clean()
+    public function clean() : bool
     {
         try {
             $this->conn->exec(self::CLEAN_SQL);
-        } catch (PDOException $e) {
+        } catch (PDOException) {
             return false;
         }
         return true;
@@ -260,11 +259,11 @@ class SQLCache implements Cache, AtomicCounter
     /**
      * @inheritdoc
      */
-    public function flush()
+    public function flush() : bool
     {
         try {
             $this->conn->exec(self::FLUSH_SQL);
-        } catch (PDOException $e) {
+        } catch (PDOException) {
             return false;
         }
         return true;
@@ -273,7 +272,7 @@ class SQLCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function clear()
+    public function clear() : bool
     {
         return $this->flush();
     }
@@ -281,24 +280,24 @@ class SQLCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function has($key)
+    public function has(string $key) : bool
     {
         $key = $this->hashKey($key);
 
         try {
             $stmt = $this->getStatement(__METHOD__, self::HAS_SQL);
             $stmt->execute([$key]);
-        } catch (PDOException $e) {
+        } catch (PDOException) {
             return false;
         }
-        return $stmt->fetchColumn() ? true : false;
+        return (bool)$stmt->fetchColumn();
     }
 
     /**
      * @inheritDoc
      * @throws Exception\CacheException
      */
-    public function increment($key, $step = 1, $ttl = null)
+    public function increment(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
     {
         $step = $this->step($step);
 
@@ -310,7 +309,12 @@ class SQLCache implements Cache, AtomicCounter
 
             $current = $this->get($key);
             $next = ($current ?? 0) + $step;
-            $result = $this->set($key, $next, ($current === null ? $ttl : null));
+            if ($current !== null) {
+                $stmt = $this->getStatement(__METHOD__, self::UPDATE_INCREMENT_SQL);
+                $result = $stmt->execute([serialize($next), $key]) && $stmt->rowCount() === 1;
+            } else {
+                $result = $this->set($key, $next, $ttl);
+            }
             if (!$result) {
                 $this->conn->rollBack();
                 return false;
@@ -320,50 +324,22 @@ class SQLCache implements Cache, AtomicCounter
             if (!$result) {
                 return false;
             }
-        } catch (PDOException $e) {
+            return $next;
+        } catch (PDOException) {
             if ($this->conn->inTransaction()) {
                 $this->conn->rollBack();
             }
             return false;
         }
-
-        return $next;
     }
 
     /**
      * @inheritDoc
      * @throws Exception\CacheException
      */
-    public function decrement($key, $step = 1, $ttl = null)
+    public function decrement(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
     {
-        $step = $this->step($step);
-
-        try {
-            $result = $this->conn->beginTransaction();
-            if (!$result) {
-                return false;
-            }
-
-            $current = $this->get($key);
-            $next = ($current ?? 0) - $step;
-            $result = $this->set($key, $next, ($current === null ? $ttl : null));
-            if (!$result) {
-                $this->conn->rollBack();
-                return false;
-            }
-
-            $result = $this->conn->commit();
-            if (!$result) {
-                return false;
-            }
-        } catch (PDOException $e) {
-            if ($this->conn->inTransaction()) {
-                $this->conn->rollBack();
-            }
-            return false;
-        }
-
-        return $next;
+        return $this->increment($key, -$step, $ttl);
     }
 
     /**
@@ -375,12 +351,9 @@ class SQLCache implements Cache, AtomicCounter
      * @param string $sql The SQL statement associated with the given method.
      * @return PDOStatement Returns the prepared statement for the given method.
      */
-    private function getStatement($method, $sql)
+    private function getStatement(string $method, string $sql) : PDOStatement
     {
-        if (empty($this->statements[$method])) {
-            $this->statements[$method] = $this->conn->prepare($sql);
-        }
-        return $this->statements[$method];
+        return $this->statements[$method] ??= $this->conn->prepare($sql);
     }
 
     /**
@@ -390,7 +363,7 @@ class SQLCache implements Cache, AtomicCounter
      * @return string The key, or the hash of the key parameter if it goes beyond maximum length
      * @private Public for testing
      */
-    public static function hashKey($key)
+    public static function hashKey(string $key) : string
     {
         return (strlen($key) > self::MAX_KEY_LEN) ? hash('sha256', $key) : $key;
     }

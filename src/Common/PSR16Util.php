@@ -16,22 +16,18 @@ trait PSR16Util
 {
     /**
      * The DateTime implementation to use
-     *
-     * @var string
      */
-    private static $dateTimeClass = DateTime::class;
+    private static string $dateTimeClass = DateTime::class;
 
     /**
      * Enforce a fairly standard key format
      *
-     * @param mixed $key
-     * @return int|float|string|bool Returns the key, if valid
      * @throws CacheArgumentException Thrown if the key is not a legal value
      */
-    protected function key($key)
+    protected function key(mixed $key) : string
     {
         if (is_numeric($key) || is_string($key)) {
-            return $key;
+            return (string)$key;
         }
 
         throw new CacheArgumentException("key is not a legal value");
@@ -39,11 +35,11 @@ trait PSR16Util
 
     /**
      * Enforce fairly standard key formats on an iterable of values
-     * @param iterable $values
-     * @return iterable The values array
+     *
      * @throws CacheArgumentException Thrown if any of the keys is not a legal value
      */
-    protected function values($values) {
+    protected function values(iterable $values) : iterable
+    {
         if (!is_array($values) && !($values instanceof Traversable)) {
             throw new CacheArgumentException("values must be provided as an array or a Traversable");
         }
@@ -58,11 +54,9 @@ trait PSR16Util
     /**
      * Enforce a fairly standard key format on an array or Traversable of keys
      *
-     * @param iterable $keys
-     * @return mixed[] Returns the keys, if valid
      * @throws CacheArgumentException Thrown if any of the keys is not a legal value
      */
-    protected function keys($keys)
+    protected function keys(iterable $keys) : array
     {
         if (!is_array($keys) && !($keys instanceof Traversable)) {
             throw new CacheArgumentException("keys must be provided as an array or a Traversable");
@@ -78,11 +72,9 @@ trait PSR16Util
     /**
      * Enforce a valid step value for increment/decrement methods
      *
-     * @param mixed $step
-     * @return int
      * @throws CacheArgumentException Thrown if the step is not a legal value
      */
-    protected function step($step)
+    protected function step(mixed $step) : int
     {
         if (!is_integer($step)) {
             throw new CacheArgumentException("step must be an integer");
@@ -96,17 +88,15 @@ trait PSR16Util
      *
      * Note: This does NOT check the keys array
      *
-     * @param array|iterable $keys An array of expected keys
+     * @param iterable|array $keys An array of expected keys
      * @param array $values An array of values pulled from the cache
      * @param mixed $default The default value to be populated for missing entries
      * @return array The values array, with defaults added
      */
-    protected static function defaults($keys, $values, $default)
+    protected static function defaults(iterable $keys, array $values, mixed $default) : array
     {
         foreach ($keys as $key) {
-            if (!isset($values[$key])) {
-                $values[$key] = $default;
-            }
+            $values[$key] ??= $default;
         }
         return $values;
     }
@@ -114,15 +104,14 @@ trait PSR16Util
     /**
      * Convert a PSR-16 compatible TTL argument to a standard integer TTL as used by most caches
      *
-     * @param mixed $ttl Takes a valid TTL argument and converts to an integer TTL
-     * @throws CacheArgumentException|CacheException Throws if the argument is not a valid TTL
-     * @return int|null
+     * @throws CacheException Throws if the argument is not a valid TTL
      */
-    public static function ttl($ttl)
+    public static function ttl(mixed $ttl) : int|null
     {
         if ($ttl instanceof DateInterval) {
             return static::intervalToTTL($ttl);
-        } elseif (is_numeric($ttl) || $ttl === null) {
+        }
+        if (is_numeric($ttl) || $ttl === null) {
             return $ttl;
         }
 
@@ -132,18 +121,16 @@ trait PSR16Util
     /**
      * Convert a DateInterval to a time diff in seconds
      *
-     * @param DateInterval $interval
-     * @return int The number of seconds from now until $interval
      * @throws CacheException
      */
-    public static function intervalToTTL(DateInterval $interval)
+    public static function intervalToTTL(DateInterval $interval) : int
     {
         $dateClass = self::$dateTimeClass;
 
         try {
             $now = new $dateClass();
             $exp = (new $dateClass())->add($interval);
-        } catch (Exception $e) {
+        } catch (Exception) {
             throw new CacheException("Could not get current DateTime");
         }
 

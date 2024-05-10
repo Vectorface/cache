@@ -8,13 +8,13 @@ namespace Vectorface\Tests\Cache\Helpers;
 class FakeRealpath
 {
     /** @var bool */
-    public static $broken = false;
+    public static bool $broken = false;
 
     /**
      * @param mixed ...$args
      * @return bool|false|string
      */
-    public static function realpath(...$args)
+    public static function realpath(...$args) : bool|string
     {
         if (static::$broken) {
             return false;
@@ -28,7 +28,7 @@ class FakeRealpath
  * @param mixed ...$args
  * @return bool|false|string
  */
-function realpath(...$args)
+function realpath(...$args) : bool|string
 {
     return FakeRealpath::realpath(...$args);
 }

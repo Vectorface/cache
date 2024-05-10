@@ -2,6 +2,8 @@
 
 namespace Vectorface\Cache\Common;
 
+use DateInterval;
+
 /**
  * Wraps (get|set|delete) operations with their multiple counterparts
  *
@@ -9,16 +11,16 @@ namespace Vectorface\Cache\Common;
  */
 trait MultipleTrait
 {
-    abstract public function get($key, $default);
-    abstract public function set($key, $value, $ttl = null);
-    abstract public function delete($key);
-    abstract protected function keys($keys);
-    abstract protected function values($values);
+    abstract public function get(string $key, mixed $default);
+    abstract public function set(string $key, mixed $value, DateInterval|int|null $ttl = null);
+    abstract public function delete(string $key);
+    abstract protected function keys(iterable $keys);
+    abstract protected function values(iterable $values);
 
     /**
      * @inheritDoc
      */
-    public function getMultiple($keys, $default = null)
+    public function getMultiple(iterable $keys, mixed $default = null) : iterable
     {
         $values = [];
         foreach ($this->keys($keys) as $key) {
@@ -31,7 +33,7 @@ trait MultipleTrait
     /**
      * @inheritDoc
      */
-    public function setMultiple($values, $ttl = null)
+    public function setMultiple(iterable $values, DateInterval|int|null $ttl = null) : bool
     {
         $success = true;
         foreach ($this->values($values) as $key => $value) {
@@ -43,7 +45,7 @@ trait MultipleTrait
     /**
      * @inheritDoc
      */
-    public function deleteMultiple($keys)
+    public function deleteMultiple($keys) : bool
     {
         $success = true;
         foreach ($keys as $key) {

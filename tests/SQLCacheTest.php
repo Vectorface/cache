@@ -5,24 +5,24 @@
 
 namespace Vectorface\Tests\Cache;
 
-use InvalidArgumentException;
 use PDO;
 use PDOException;
+use TypeError;
 use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Cache\SQLCache;
 
+/**
+ * @property SQLCache $cache
+ */
 class SQLCacheTest extends GenericCacheTest
 {
-    private $pdo;
-
-    /** @var SQLCache */
-    protected $cache;
+    private PDO $pdo;
 
     protected function setUp(): void
     {
         try {
             $this->pdo = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
-        } catch (PDOException $e) {
+        } catch (PDOException) {
             $this->markTestSkipped("Please ensure that the pdo_sqlite module is installed and configured");
         }
         $this->pdo->sqliteCreateFunction('UNIX_TIMESTAMP', 'time', 0);
@@ -85,7 +85,7 @@ class SQLCacheTest extends GenericCacheTest
 
         $this->assertEquals(
             serialize($expected),
-            $this->pdo->query("SELECT value FROM cache WHERE entry=\"$hash\"")->fetch(PDO::FETCH_COLUMN)
+            $this->pdo->query("SELECT value FROM cache WHERE entry='{$hash}'")->fetch(PDO::FETCH_COLUMN)
         );
 
         $this->assertEquals($expected, $this->cache->get($key));
@@ -113,8 +113,8 @@ class SQLCacheTest extends GenericCacheTest
         $pdoMock = $this->createMock(PDO::class);
         $pdoMock->method('beginTransaction')->willReturn(false);
 
-        $this->assertEquals(false, (new SQLCache($pdoMock))->increment('foo'));
-        $this->assertEquals(false, (new SQLCache($pdoMock))->decrement('foo'));
+        $this->assertFalse((new SQLCache($pdoMock))->increment('foo'));
+        $this->assertFalse((new SQLCache($pdoMock))->decrement('foo'));
     }
 
     /**
@@ -127,7 +127,7 @@ class SQLCacheTest extends GenericCacheTest
         $pdoMock->method('inTransaction')->willReturn(true);
         $pdoMock->method('rollback')->willReturn(true);
 
-        $this->assertEquals(false, (new SQLCache($pdoMock))->increment('foo'));
+        $this->assertFalse((new SQLCache($pdoMock))->increment('foo'));
     }
 
     /**
@@ -140,7 +140,7 @@ class SQLCacheTest extends GenericCacheTest
         $pdoMock->method('inTransaction')->willReturn(true);
         $pdoMock->method('rollback')->willReturn(true);
 
-        $this->assertEquals(false, (new SQLCache($pdoMock))->decrement('foo'));
+        $this->assertFalse((new SQLCache($pdoMock))->decrement('foo'));
     }
 
     /**
@@ -148,14 +148,14 @@ class SQLCacheTest extends GenericCacheTest
      */
     public function testBadStep()
     {
-        $this->expectException(InvalidArgumentException::class);
-        $this->assertEquals(false, $this->cache->increment('foo', null));
+        $this->expectException(TypeError::class);
+        $this->assertFalse($this->cache->increment('foo', null));
     }
 
     /**
      * Create the "cache" table in SQLite.
      */
-    private function createTable()
+    private function createTable() : void
     {
         $this->pdo->exec('
             CREATE TABLE cache (

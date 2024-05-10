@@ -4,8 +4,8 @@ namespace Vectorface\Tests\Cache\Common;
 
 use DateInterval;
 use ReflectionClass;
-use ReflectionException;
 use stdClass;
+use TypeError;
 use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Cache\Exception\InvalidArgumentException;
 use Vectorface\Cache\PHPCache;
@@ -16,7 +16,7 @@ class PSR16UtilTest extends TestCase
 {
     public function testEnforcesScalarKey()
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(TypeError::class);
         (new PHPCache)->get(new stdClass);
     }
 
@@ -28,7 +28,7 @@ class PSR16UtilTest extends TestCase
 
     public function testEnforcesIterableKeys()
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(TypeError::class);
         (new PHPCache)->getMultiple("not array or Traversable");
     }
 
@@ -42,7 +42,6 @@ class PSR16UtilTest extends TestCase
 
     /**
      * @throws CacheException
-     * @throws ReflectionException
      */
     public function testBrokenDateTime()
     {

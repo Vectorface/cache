@@ -4,7 +4,6 @@ namespace Vectorface\Tests\Cache;
 
 use Exception;
 use ReflectionClass;
-use ReflectionException;
 use Vectorface\Cache\APCCache;
 
 class APCCacheTest extends GenericCacheTest
@@ -17,9 +16,6 @@ class APCCacheTest extends GenericCacheTest
         $this->cache = new APCCache();
     }
 
-    /**
-     * @throws ReflectionException
-     */
     public function testModuleNotAvailable()
     {
         $cls = new ReflectionClass(APCCache::class);
@@ -30,7 +26,7 @@ class APCCacheTest extends GenericCacheTest
             $orig = $prop->getValue($cache);
             $prop->setValue($cache, 'invalidmodulename');
             $this->fail('The invalidated module name should prevent using this cache.');
-        } catch (Exception $e) {
+        } catch (Exception) {
             // Expected.
         }
 

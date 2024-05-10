@@ -9,7 +9,7 @@ use Vectorface\Tests\Cache\Helpers\Memcache;
 
 class MCCacheTest extends GenericCacheTest
 {
-    private $memcache;
+    private FakeMemcache $memcache;
 
     protected function setUp(): void
     {
@@ -36,7 +36,7 @@ class MCCacheTest extends GenericCacheTest
 
     public function testGetMultiple()
     {
-        $this->assertEquals(true, $this->cache->setMultiple(["foo" => "foo", "bar" => "bar"]));
+        $this->assertTrue($this->cache->setMultiple(["foo" => "foo", "bar" => "bar"]));
         $this->assertEquals(["foo" => "foo"], $this->cache->getMultiple(["foo"]));
         $this->cache->flush();
     }

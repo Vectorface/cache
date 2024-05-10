@@ -5,8 +5,8 @@ namespace Vectorface\Tests\Cache;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
-use ReflectionException;
 use stdClass;
+use TypeError;
 use Vectorface\Cache\AtomicCounter;
 use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Cache\NullCache;
@@ -135,11 +135,10 @@ class LogDecoratorTest extends TestCase
 
     /**
      * @throws CacheException
-     * @throws ReflectionException
      */
     public function testInvalidClass()
     {
-        $this->expectException(CacheException::class);
+        $this->expectException(TypeError::class);
 
         $decorator = new LogDecorator(new NullCache());
 

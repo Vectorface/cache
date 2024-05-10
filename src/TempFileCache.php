@@ -3,6 +3,7 @@
 
 namespace Vectorface\Cache;
 
+use DateInterval;
 use Exception;
 use Psr\SimpleCache\InvalidArgumentException;
 use Vectorface\Cache\Common\MultipleTrait;
@@ -15,20 +16,13 @@ class TempFileCache implements Cache
 {
     use MultipleTrait, PSR16Util;
 
-    /**
-     * @var string
-     */
-    private $directory;
-
-    /**
-     * @var string
-     */
-    private $extension;
+    private string $directory;
+    private string $extension;
 
     /**
      * Create a temporary file cache.
      *
-     * @param string $directory The directory in which cache files should be stored.
+     * @param string|null $directory The directory in which cache files should be stored.
      * @param string $extension The extension to be used after the filename to uniquely identify cache files.
      *
      * Note:
@@ -37,7 +31,7 @@ class TempFileCache implements Cache
      *  - If given an absolute path, it will attempt to use that path as-is. Not recommended.
      * @throws Exception
      */
-    public function __construct($directory = null, $extension = '.tempcache')
+    public function __construct(string|null $directory = null, string $extension = '.tempcache')
     {
         $this->directory = $this->getTempDir($directory);
         $this->checkAndCreateDir($this->directory);
@@ -50,7 +44,7 @@ class TempFileCache implements Cache
         }
         $this->directory = $realpath;
 
-        $this->extension = empty($extension) ? "" : (string)$extension;
+        $this->extension = empty($extension) ? "" : $extension;
     }
 
     /**
@@ -59,7 +53,7 @@ class TempFileCache implements Cache
      * @param string $directory
      * @throws Exception
      */
-    private function checkAndCreateDir($directory)
+    private function checkAndCreateDir(string $directory) : void
     {
         if (!file_exists($directory)) {
             if (!@mkdir($directory, 0700, true)) {
@@ -77,25 +71,25 @@ class TempFileCache implements Cache
     /**
      * Generate a consistent temporary directory based on a requested directory name.
      *
-     * @param string $directory The name or path of a temporary directory.
+     * @param string|null $directory The name or path of a temporary directory.
      * @return string The directory name, resolved to a full path.
      */
-    private function getTempDir($directory)
+    private function getTempDir(string|null $directory) : string
     {
-        if (empty($directory) || !is_string($directory)) {
+        if (empty($directory)) {
             $classParts = explode("\\", static::class);
             return sys_get_temp_dir()  . '/' . end($classParts);
-        } elseif (strpos($directory, '/') !== 0) {
-            return sys_get_temp_dir() . '/' . $directory;
-        } else {
-            return $directory;
         }
+        if (!str_starts_with($directory, '/')) {
+            return sys_get_temp_dir() . '/' . $directory;
+        }
+        return $directory;
     }
 
     /**
      * @inheritDoc
      */
-    public function get($key, $default = null)
+    public function get(string $key, mixed $default = null) : mixed
     {
         $file = $this->makePath($this->key($key));
         $data = @file_get_contents($file);
@@ -109,7 +103,7 @@ class TempFileCache implements Cache
             return $default;
         }
 
-        list($expiry, $value) = $data;
+        [$expiry, $value] = $data;
         if ($expiry !== false && ($expiry < microtime(true))) {
             $this->delete($key);
             return $default;
@@ -121,7 +115,7 @@ class TempFileCache implements Cache
     /**
      * @inheritDoc
      */
-    public function set($key, $value, $ttl = null)
+    public function set(string $key, mixed $value, DateInterval|int|null $ttl = null) : bool
     {
         $ttl = $this->ttl($ttl);
         $data = [$ttl ? microtime(true) + $ttl : false, $value];
@@ -131,7 +125,7 @@ class TempFileCache implements Cache
     /**
      * @inheritDoc
      */
-    public function delete($key)
+    public function delete(string $key) : bool
     {
         return @unlink($this->makePath($this->key($key)));
     }
@@ -139,7 +133,7 @@ class TempFileCache implements Cache
     /**
      * @inheritDoc
      */
-    public function clean()
+    public function clean() : bool
     {
         if (!($files = $this->getCacheFiles())) {
             return false;
@@ -151,7 +145,7 @@ class TempFileCache implements Cache
                 // Automatically deletes if expired
                 $this->get($key);
                 // @codeCoverageIgnoreStart
-            } catch (InvalidArgumentException $e) {
+            } catch (InvalidArgumentException) {
                 return false;
                 // @codeCoverageIgnoreEnd
             }
@@ -162,7 +156,7 @@ class TempFileCache implements Cache
     /**
      * @inheritDoc
      */
-    public function flush()
+    public function flush() : bool
     {
         if (($files = $this->getCacheFiles()) === false) {
             return false;
@@ -178,7 +172,7 @@ class TempFileCache implements Cache
     /**
      * @inheritDoc
      */
-    public function clear()
+    public function clear() : bool
     {
         return $this->flush();
     }
@@ -186,9 +180,9 @@ class TempFileCache implements Cache
     /**
      * @inheritDoc
      */
-    public function has($key)
+    public function has(string $key) : bool
     {
-        return $this->get($key, null) !== null;
+        return $this->get($key) !== null;
     }
 
     /**
@@ -197,7 +191,7 @@ class TempFileCache implements Cache
      * @param  string $key the key of the cached element
      * @return string The file path to the cached element's enclosing file.
      */
-    private function makePath($key)
+    private function makePath(string $key) : string
     {
         return $this->directory . "/" . hash("sha224", $key) . $this->extension;
     }
@@ -207,7 +201,7 @@ class TempFileCache implements Cache
      *
      * @return array|false Returns an array of filenames that represent cached entries.
      */
-    private function getCacheFiles()
+    private function getCacheFiles() : array|false
     {
         if (!($files = @scandir($this->directory, 1))) {
             return false;
@@ -230,7 +224,7 @@ class TempFileCache implements Cache
      *
      * @return bool True if the cache was flushed and the directory deleted.
      */
-    public function destroy()
+    public function destroy() : bool
     {
         return $this->flush() && @rmdir($this->directory);
     }

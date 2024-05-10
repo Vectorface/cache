@@ -2,6 +2,7 @@
 
 namespace Vectorface\Cache;
 
+use DateInterval;
 use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Vectorface\Cache\Exception\CacheException;
@@ -18,34 +19,29 @@ class LogDecorator implements Cache, AtomicCounter
 {
     /**
      * The wrapped cache class
-     * @var Cache|AtomicCounter
      */
-    private $cache;
+    private Cache|AtomicCounter $cache;
 
     /**
      * The logger instance to which operations will be logged
-     *
-     * @var LoggerInterface
      */
-    private $log;
+    private LoggerInterface|null $log;
 
     /**
      * The log level, which corresponds to a PSR-3 log level function call
-     *
-     * @var string
      */
-    private $level;
+    private string $level;
 
     /**
      * @param Cache|AtomicCounter $cache
-     * @param LoggerInterface $log
+     * @param LoggerInterface|null $log
      * @param string $level
      */
-    public function __construct(Cache $cache, LoggerInterface $log = null, $level = 'debug')
+    public function __construct(Cache|AtomicCounter $cache, LoggerInterface|null $log = null, string $level = 'debug')
     {
         $levels = ['emergency', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug'];
         if (!in_array($level, $levels)) {
-            throw new InvalidArgumentException("Incompatible log level: $level");
+            throw new InvalidArgumentException("Incompatible log level: {$level}");
         }
 
         $this->cache = $cache;
@@ -57,7 +53,7 @@ class LogDecorator implements Cache, AtomicCounter
      * @inheritDoc
      * @throws CacheException
      */
-    public function get($key, $default = null)
+    public function get(string $key, mixed $default = null) : mixed
     {
         $this->throwIfNotInstanceof(Cache::class);
 
@@ -79,7 +75,7 @@ class LogDecorator implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function set($key, $value, $ttl = false)
+    public function set(string $key, mixed $value, DateInterval|int|null $ttl = null) : bool
     {
         $this->throwIfNotInstanceof(Cache::class);
 
@@ -100,7 +96,7 @@ class LogDecorator implements Cache, AtomicCounter
      * @inheritDoc
      * @throws CacheException
      */
-    public function delete($key)
+    public function delete(string $key) : bool
     {
         $this->throwIfNotInstanceof(Cache::class);
 
@@ -118,7 +114,7 @@ class LogDecorator implements Cache, AtomicCounter
      * @inheritDoc
      * @throws CacheException
      */
-    public function flush()
+    public function flush() : bool
     {
         $this->throwIfNotInstanceof(Cache::class);
 
@@ -132,7 +128,7 @@ class LogDecorator implements Cache, AtomicCounter
      * @inheritDoc
      * @throws CacheException
      */
-    public function clean()
+    public function clean() : bool
     {
         $this->throwIfNotInstanceof(Cache::class);
 
@@ -146,7 +142,7 @@ class LogDecorator implements Cache, AtomicCounter
      * @inheritDoc
      * @throws CacheException
      */
-    public function clear()
+    public function clear() : bool
     {
         $this->throwIfNotInstanceof(Cache::class);
 
@@ -157,7 +153,7 @@ class LogDecorator implements Cache, AtomicCounter
      * @inheritDoc
      * @throws CacheException
      */
-    public function getMultiple($keys, $default = null)
+    public function getMultiple(iterable $keys, mixed $default = null) : iterable
     {
         $this->throwIfNotInstanceof(Cache::class);
 
@@ -174,7 +170,7 @@ class LogDecorator implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function setMultiple($values, $ttl = null)
+    public function setMultiple(iterable $values, DateInterval|int|null $ttl = null) : bool
     {
         $this->throwIfNotInstanceof(Cache::class);
 
@@ -193,7 +189,7 @@ class LogDecorator implements Cache, AtomicCounter
      * @inheritDoc
      * @throws CacheException
      */
-    public function deleteMultiple($keys)
+    public function deleteMultiple(iterable $keys) : bool
     {
         $this->throwIfNotInstanceof(Cache::class);
 
@@ -211,7 +207,7 @@ class LogDecorator implements Cache, AtomicCounter
      * @inheritDoc
      * @throws CacheException
      */
-    public function has($key)
+    public function has(string $key) : bool
     {
         $this->throwIfNotInstanceof(Cache::class);
 
@@ -229,7 +225,7 @@ class LogDecorator implements Cache, AtomicCounter
      * @inheritDoc
      * @throws CacheException
      */
-    public function increment($key, $step = 1, $ttl = null)
+    public function increment(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
     {
         $this->throwIfNotInstanceof(AtomicCounter::class);
 
@@ -249,7 +245,7 @@ class LogDecorator implements Cache, AtomicCounter
      * @inheritDoc
      * @throws CacheException
      */
-    public function decrement($key, $step = 1, $ttl = null)
+    public function decrement(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
     {
         $this->throwIfNotInstanceof(AtomicCounter::class);
 
@@ -267,10 +263,8 @@ class LogDecorator implements Cache, AtomicCounter
 
     /**
      * Log a message to the configured logger
-     *
-     * @param $message
      */
-    private function log(string $message)
+    private function log(string $message) : void
     {
         if (!$this->log) {
             return;
@@ -285,10 +279,10 @@ class LogDecorator implements Cache, AtomicCounter
      * @param string $class
      * @throws CacheException
      */
-    private function throwIfNotInstanceof($class)
+    private function throwIfNotInstanceof(string $class) : void
     {
         if (! $this->cache instanceof $class) {
-            throw new CacheException("This decorated instance does not implement $class");
+            throw new CacheException("This decorated instance does not implement {$class}");
         }
     }
 
@@ -298,7 +292,7 @@ class LogDecorator implements Cache, AtomicCounter
      * @param mixed $val The cacheable value
      * @return int An estimate of the cached size of the value
      */
-    private function getSize($val)
+    private function getSize(mixed $val) : int
     {
         return strlen(is_scalar($val) ? (string)$val : serialize($val));
     }

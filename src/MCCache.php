@@ -3,6 +3,7 @@
 
 namespace Vectorface\Cache;
 
+use DateInterval;
 use Memcache;
 use Vectorface\Cache\Common\PSR16Util;
 
@@ -28,26 +29,18 @@ class MCCache implements Cache, AtomicCounter
     use PSR16Util;
 
     /**
-     * Memcache instance; Connection to the memcached server.
-     *
-     * @var Memcache
-     */
-    private $mc;
-
-    /**
      * Create a new memcache-based cache.
      *
      * @param Memcache $mc The memcache instance, or null to try to build one.
      */
-    public function __construct(Memcache $mc)
-    {
-        $this->mc = $mc;
-    }
+    public function __construct(
+        private Memcache $mc,
+    ) {}
 
     /**
      * @inheritDoc
      */
-    public function get($key, $default = null)
+    public function get(string $key, mixed $default = null) : mixed
     {
         $value = $this->mc->get($this->key($key));
         return ($value === false) ? $default : $value;
@@ -56,7 +49,7 @@ class MCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function set($key, $value, $ttl = null)
+    public function set(string $key, mixed $value, DateInterval|int|null $ttl = null) : bool
     {
         return $this->mc->set($this->key($key), $value, 0, $this->ttl($ttl) ?? 0);
     }
@@ -64,7 +57,7 @@ class MCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function delete($key)
+    public function delete(string $key) : bool
     {
         return $this->mc->delete($this->key($key));
     }
@@ -72,7 +65,7 @@ class MCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function clean()
+    public function clean() : bool
     {
         return true;
     }
@@ -80,7 +73,7 @@ class MCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function flush()
+    public function flush() : bool
     {
         return $this->mc->flush();
     }
@@ -88,7 +81,7 @@ class MCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function clear()
+    public function clear() : bool
     {
         return $this->flush();
     }
@@ -96,7 +89,7 @@ class MCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function getMultiple($keys, $default = null)
+    public function getMultiple(iterable $keys, mixed $default = null) : iterable
     {
         $keys = $this->keys($keys);
         $values = $this->mc->get($keys);
@@ -117,7 +110,7 @@ class MCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function setMultiple($values, $ttl = null)
+    public function setMultiple(iterable $values, DateInterval|int|null $ttl = null) : bool
     {
         $success = true;
         foreach ($this->values($values) as $key => $value) {
@@ -129,7 +122,7 @@ class MCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function deleteMultiple($keys)
+    public function deleteMultiple(iterable $keys) : bool
     {
         $success = true;
         foreach ($this->keys($keys) as $key) {
@@ -142,15 +135,15 @@ class MCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function has($key)
+    public function has(string $key) : bool
     {
-        return $this->get($this->key($key), null) !== null;
+        return $this->get($this->key($key)) !== null;
     }
 
     /**
      * @inheritDoc
      */
-    public function increment($key, $step = 1, $ttl = null)
+    public function increment(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
     {
         $key = $this->key($key);
 
@@ -164,7 +157,7 @@ class MCCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function decrement($key, $step = 1, $ttl = null)
+    public function decrement(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
     {
         $key = $this->key($key);
 

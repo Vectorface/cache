@@ -2,6 +2,7 @@
 
 namespace Vectorface\Tests\Cache;
 
+use Psr\SimpleCache\InvalidArgumentException;
 use Vectorface\Cache\Exception\CacheException;
 use PHPUnit\Framework\TestCase;
 use Vectorface\Cache\PHPCache;
@@ -10,7 +11,7 @@ use Vectorface\Cache\SimpleCacheAdapter;
 class SimpleCacheAdapterTest extends TestCase
 {
     /**
-     * @throws CacheException
+     * @throws CacheException|InvalidArgumentException
      */
     public function testSimpleCacheAdapter()
     {

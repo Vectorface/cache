@@ -7,6 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\SimpleCache\CacheInterface;
 use Psr\SimpleCache\InvalidArgumentException as IInvalidArgumentException;
 use stdClass;
+use TypeError;
 use Vectorface\Cache\AtomicCounter;
 use Vectorface\Cache\Cache;
 use Vectorface\Cache\Exception\CacheException;
@@ -15,12 +16,8 @@ use Vectorface\Cache\SimpleCacheAdapter;
 
 abstract class GenericCacheTest extends TestCase
 {
-    /**
-     * The cache entry to be set by child classes.
-     *
-     * @var Cache
-     */
-    protected $cache;
+    /** The cache entry to be set by child classes. */
+    protected array|Cache $cache;
 
     public function testClass()
     {
@@ -32,12 +29,9 @@ abstract class GenericCacheTest extends TestCase
 
     /**
      * @dataProvider cacheDataProvider
-     * @param string $key
-     * @param mixed $data
-     * @param int $ttl
      * @throws IInvalidArgumentException|CacheException
      */
-    public function testGet($key, $data, $ttl)
+    public function testGet(string $key, mixed $data, int $ttl)
     {
         foreach ($this->getCaches() as $cache) {
             $cache->set($key, $data, $ttl); /* Write */
@@ -93,28 +87,36 @@ abstract class GenericCacheTest extends TestCase
             $this->assertEquals(
                 ['foo' => 'dflt', 'bar' => 'dflt'],
                 $cache->getMultiple(
-                    (function() { yield 'foo'; yield 'bar'; })(),
+                    (static function() {
+                        yield 'foo';
+                        yield 'bar';
+                    })(),
                     'dflt'
                 ),
                 "Expected the result to be populated with default values"
             );
             $this->assertTrue($cache->setMultiple(
-                (function() { yield 'foo' => 'bar'; yield 'baz' => 'quux'; })()
+                (static function() {
+                    yield 'foo' => 'bar';
+                    yield 'baz' => 'quux';
+                })()
             ));
             $this->assertEquals('bar', $cache->get('foo'));
             $this->assertEquals('quux', $cache->get('baz'));
-            $this->assertTrue($cache->deleteMultiple((function() { yield 'foo'; yield 'baz'; })()));
+            $this->assertTrue($cache->deleteMultiple(
+                (static function() {
+                    yield 'foo';
+                    yield 'baz';
+                })()
+            ));
         }
     }
 
     /**
      * @dataProvider cacheDataProvider
-     * @param string $key
-     * @param mixed $data
-     * @param int $ttl
      * @throws IInvalidArgumentException|CacheException
      */
-    public function testDelete($key, $data, $ttl)
+    public function testDelete(string $key, mixed $data, int $ttl)
     {
         foreach ($this->getCaches() as $cache) {
             $this->assertTrue($cache->set($key, $data, $ttl));
@@ -149,36 +151,26 @@ abstract class GenericCacheTest extends TestCase
 
     /**
      * @dataProvider cacheDataProvider
-     * @param string $key
-     * @param mixed $data
-     * @param int $ttl
      * @throws IInvalidArgumentException|CacheException
      */
-    public function testFlush($key, $data, $ttl)
+    public function testFlush(string $key, mixed $data, int $ttl)
     {
         $this->realTestFlushAndClear($key, $data, $ttl, true);
     }
 
     /**
      * @dataProvider cacheDataProvider
-     * @param string $key
-     * @param mixed $data
-     * @param int $ttl
      * @throws IInvalidArgumentException|CacheException
      */
-    public function testClear($key, $data, $ttl)
+    public function testClear(string $key, mixed $data, int $ttl)
     {
         $this->realTestFlushAndClear($key, $data, $ttl, false);
     }
 
     /**
-     * @param string $key
-     * @param mixed $data
-     * @param int $ttl
-     * @param bool $flush
      * @throws IInvalidArgumentException|CacheException
      */
-    public function realTestFlushAndClear($key, $data, $ttl, $flush)
+    public function realTestFlushAndClear(string $key, mixed $data, int $ttl, bool $flush) : void
     {
         foreach ($this->getCaches() as $cache) {
             $cache->set($key, $data, $ttl);
@@ -192,6 +184,7 @@ abstract class GenericCacheTest extends TestCase
 
     /**
      * @throws IInvalidArgumentException
+     * @throws CacheException
      */
     public function testIncrementDecrement()
     {
@@ -225,12 +218,18 @@ abstract class GenericCacheTest extends TestCase
         $expectIAE = function($callback, $message = '') {
             try {
                 $callback();
-                $this->fail("$message: Expected exception, but none happened");
+                $this->fail("{$message}: Expected exception, but none happened");
             } catch (InvalidArgumentException $e) {
                 $this->assertInstanceOf(
                     IInvalidArgumentException::class,
                     $e,
-                    "$message: Expected Psr\SimpleCache\InvalidArgumentException"
+                    "{$message}: Expected Psr\SimpleCache\InvalidArgumentException"
+                );
+            } catch (TypeError $e) {
+                $this->assertInstanceOf(
+                    TypeError::class,
+                    $e,
+                    "{$message}: Expected TypeError"
                 );
             }
         };
@@ -245,7 +244,7 @@ abstract class GenericCacheTest extends TestCase
         }
     }
 
-    public function cacheDataProvider()
+    public function cacheDataProvider() : array
     {
         return [
             [
@@ -266,7 +265,7 @@ abstract class GenericCacheTest extends TestCase
         ];
     }
 
-    protected function getCaches()
+    protected function getCaches() : array|Cache
     {
         return is_array($this->cache) ? $this->cache : [$this->cache];
     }

@@ -2,6 +2,8 @@
 
 namespace Vectorface\Cache;
 
+use DateInterval;
+
 /**
  * Class with a few methods that may assist in implementing item caching.
  */
@@ -28,11 +30,11 @@ class CacheHelper
      * @param string $key The cache key which should store the value.
      * @param callable $callback A callable which is expected to return a value to be cached.
      * @param mixed[] $args The arguments to be passed to the callback, if it needs to be called.
-     * @param int $ttl If a value is to be set in the cache, set this expiry time (in seconds).
+     * @param DateInterval|int|null $ttl If a value is to be set in the cache, set this expiry time (in seconds).
      * @return mixed The value stored in the cache, or returned by the callback.
      * @throws Exception\CacheException
      */
-    public static function fetch(Cache $cache, string $key, callable $callback, array $args = [], $ttl = 300)
+    public static function fetch(Cache $cache, string $key, callable $callback, array $args = [], DateInterval|int|null $ttl = 300) : mixed
     {
         $item = $cache->get($key);
         if ($item === null) {

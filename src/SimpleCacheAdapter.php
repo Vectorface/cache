@@ -10,18 +10,14 @@ use Traversable;
  */
 class SimpleCacheAdapter implements CacheInterface
 {
-    /** @var Cache */
-    protected $cache;
-
     /**
      * Create an adapter over a Vectorface cache instance to the SimpleCache interface.
      *
      * @param Cache $cache
      */
-    public function __construct(Cache $cache)
-    {
-        $this->cache = $cache;
-    }
+    public function __construct(
+        protected Cache $cache,
+    ) {}
 
     /**
      * @inheritDoc
@@ -35,7 +31,7 @@ class SimpleCacheAdapter implements CacheInterface
      * @inheritDoc
      * @throws Exception\CacheException
      */
-    public function set($key, $value, $ttl = null)
+    public function set($key, $value, $ttl = null) : bool
     {
         return $this->cache->set($key, $value, $ttl);
     }
@@ -43,7 +39,7 @@ class SimpleCacheAdapter implements CacheInterface
     /**
      * @inheritDoc
      */
-    public function delete($key)
+    public function delete($key) : bool
     {
         return $this->cache->delete($key);
     }
@@ -51,7 +47,7 @@ class SimpleCacheAdapter implements CacheInterface
     /**
      * @inheritDoc
      */
-    public function clear()
+    public function clear() : bool
     {
         return $this->cache->clear();
     }
@@ -60,7 +56,7 @@ class SimpleCacheAdapter implements CacheInterface
      * @inheritDoc
      * @param array|Traversable $keys
      */
-    public function getMultiple($keys, $default = null)
+    public function getMultiple($keys, $default = null) : iterable
     {
         return $this->cache->getMultiple($keys, $default);
     }
@@ -70,7 +66,7 @@ class SimpleCacheAdapter implements CacheInterface
      * @param array|Traversable $values
      * @throws Exception\CacheException
      */
-    public function setMultiple($values, $ttl = null)
+    public function setMultiple($values, $ttl = null) : bool
     {
         return $this->cache->setMultiple($values, $ttl);
     }
@@ -79,7 +75,7 @@ class SimpleCacheAdapter implements CacheInterface
      * @inheritDoc
      * @param array|Traversable $keys
      */
-    public function deleteMultiple($keys)
+    public function deleteMultiple($keys) : bool
     {
         return $this->cache->deleteMultiple($keys);
     }
@@ -87,7 +83,7 @@ class SimpleCacheAdapter implements CacheInterface
     /**
      * @inheritDoc
      */
-    public function has($key)
+    public function has($key) : bool
     {
         return $this->cache->has($key);
     }

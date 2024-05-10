@@ -2,6 +2,7 @@
 
 namespace Vectorface\Cache;
 
+use DateInterval;
 use InvalidArgumentException;
 use Vectorface\Cache\Common\PSR16Util;
 
@@ -33,7 +34,7 @@ class TieredCache implements Cache
      *
      * @var Cache[]
      */
-    private $caches = [];
+    private array $caches = [];
 
     /**
      * Create a cache that layers caches on top of each other.
@@ -41,19 +42,19 @@ class TieredCache implements Cache
      * Read requests hit caches in order until they get a hit. The first hit is returned.
      * Write operations hit caches in order, performing the write operation on all caches.
      *
-     * @param Cache[] $caches An array of objects implementing the Cache interface.
+     * @param Cache|Cache[]|null $caches An array of objects implementing the Cache interface.
      *
      * Note: Order is important. The first element is get/set first, and so on. Usually that means  you want to put the
      * fastest caches first.
      */
-    public function __construct($caches = null)
+    public function __construct(Cache|array|null $caches = null)
     {
         if (!is_array($caches)) {
             $caches = func_get_args();
         }
         foreach ($caches as $i => $cache) {
             if (!($cache instanceof Cache)) {
-                throw new InvalidArgumentException("Argument $i is not of class Cache");
+                throw new InvalidArgumentException("Argument {$i} is not of class Cache");
             }
             $this->caches[] = $cache;
         }
@@ -62,7 +63,7 @@ class TieredCache implements Cache
     /**
      * @inheritDoc
      */
-    public function get($key, $default = null)
+    public function get(string $key, mixed $default = null) : mixed
     {
         $key = $this->key($key);
         foreach ($this->caches as $cache) {
@@ -77,7 +78,7 @@ class TieredCache implements Cache
     /**
      * @inheritDoc
      */
-    public function set($key, $value, $ttl = null)
+    public function set(string $key, mixed $value, DateInterval|int|null $ttl = null) : bool
     {
         return $this->any('set', $this->key($key), $value, $this->ttl($ttl));
     }
@@ -85,7 +86,7 @@ class TieredCache implements Cache
     /**
      * @inheritDoc
      */
-    public function delete($key)
+    public function delete(string $key) : bool
     {
         return $this->all('delete', $this->key($key));
     }
@@ -93,7 +94,7 @@ class TieredCache implements Cache
     /**
      * @inheritDoc
      */
-    public function clean()
+    public function clean() : bool
     {
         return $this->all('clean');
     }
@@ -101,7 +102,7 @@ class TieredCache implements Cache
     /**
      * @inheritDoc
      */
-    public function flush()
+    public function flush() : bool
     {
         return $this->all('flush');
     }
@@ -109,12 +110,12 @@ class TieredCache implements Cache
     /**
      * @inheritDoc
      */
-    public function getMultiple($keys, $default = null)
+    public function getMultiple(iterable $keys, mixed $default = null) : iterable
     {
         $neededKeys = $keys;
         $values = [];
         foreach ($this->caches as $cache) {
-            $result = $cache->getMultiple($neededKeys, null);
+            $result = $cache->getMultiple($neededKeys);
             $values = array_merge(
                 $values,
                 array_filter(is_array($result) ? $result : iterator_to_array($result, true))
@@ -139,7 +140,7 @@ class TieredCache implements Cache
     /**
      * @inheritDoc
      */
-    public function setMultiple($values, $ttl = null)
+    public function setMultiple(iterable $values, DateInterval|int|null $ttl = null) : bool
     {
         return $this->any('setMultiple', $this->values($values), $this->ttl($ttl));
     }
@@ -147,7 +148,7 @@ class TieredCache implements Cache
     /**
      * @inheritDoc
      */
-    public function deleteMultiple($keys)
+    public function deleteMultiple(iterable $keys) : bool
     {
         return $this->all('deleteMultiple', $this->keys($keys));
     }
@@ -155,7 +156,7 @@ class TieredCache implements Cache
     /**
      * @inheritDoc
      */
-    public function clear()
+    public function clear() : bool
     {
         return $this->flush();
     }
@@ -163,7 +164,7 @@ class TieredCache implements Cache
     /**
      * @inheritDoc
      */
-    public function has($key)
+    public function has(string $key) : bool
     {
         return $this->get($this->key($key)) !== null;
     }
@@ -175,7 +176,7 @@ class TieredCache implements Cache
      * @param mixed ...$args The method's arguments
      * @return bool True if the operation was successful on all caches
      */
-    private function all(string $call, ...$args)
+    private function all(string $call, ...$args) : bool
     {
         $success = true;
         foreach ($this->caches as $cache) {
@@ -192,7 +193,7 @@ class TieredCache implements Cache
      * @param mixed ...$args The method's arguments
      * @return bool True if the operation was successful on any cache
      */
-    private function any($call, ...$args)
+    private function any(string $call, ...$args) : bool
     {
         $success = false;
         foreach ($this->caches as $cache) {

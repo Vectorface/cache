@@ -3,6 +3,7 @@
 
 namespace Vectorface\Cache;
 
+use DateInterval;
 use Vectorface\Cache\Common\PSR16Util;
 use Redis;
 use RedisClient\RedisClient;
@@ -18,15 +19,10 @@ class RedisCache implements Cache, AtomicCounter
 {
     use PSR16Util { key as PSR16Key; }
 
-    /**
-     * @var Redis|RedisClient
-     */
+    /** @var Redis|RedisClient */
     private $redis;
 
-    /**
-     * @var string
-     */
-    private $prefix;
+    private string $prefix;
 
     /**
      * RedisCache constructor.
@@ -47,7 +43,7 @@ class RedisCache implements Cache, AtomicCounter
     /**
      * @inheritDoc Vectorface\Cache\Cache
      */
-    public function get($key, $default = null)
+    public function get(string $key, mixed $default = null) : mixed
     {
         $result = $this->redis->get($this->key($key));
 
@@ -60,7 +56,7 @@ class RedisCache implements Cache, AtomicCounter
     /**
      * @inheritDoc Vectorface\Cache\Cache
      */
-    public function set($key, $value, $ttl = null)
+    public function set(string $key, mixed $value, DateInterval|int|null $ttl = null) : bool
     {
         $ttl = $this->ttl($ttl);
 
@@ -75,7 +71,7 @@ class RedisCache implements Cache, AtomicCounter
     /**
      * @inheritDoc Vectorface\Cache\Cache
      */
-    public function delete($key)
+    public function delete(string $key) : bool
     {
         return (bool)$this->redis->del($this->key($key));
     }
@@ -83,7 +79,7 @@ class RedisCache implements Cache, AtomicCounter
     /**
      * @inheritDoc Vectorface\Cache\Cache
      */
-    public function clean()
+    public function clean() : bool
     {
         return true; /* redis does this on its own */
     }
@@ -91,7 +87,7 @@ class RedisCache implements Cache, AtomicCounter
     /**
      * @inheritDoc Vectorface\Cache\Cache
      */
-    public function flush()
+    public function flush() : bool
     {
         if ($this->redis instanceof Redis) {
             return (bool)$this->redis->flushDB();
@@ -103,7 +99,7 @@ class RedisCache implements Cache, AtomicCounter
     /**
      * @inheritDoc Vectorface\Cache\Cache
      */
-    public function clear()
+    public function clear() : bool
     {
         return $this->flush();
     }
@@ -111,7 +107,7 @@ class RedisCache implements Cache, AtomicCounter
     /**
      * @inheritDoc Vectorface\Cache\Cache
      */
-    public function has($key)
+    public function has(string $key) : bool
     {
         return (bool)$this->redis->exists($this->key($key));
     }
@@ -119,7 +115,7 @@ class RedisCache implements Cache, AtomicCounter
     /**
      * @inheritDoc Vectorface\Cache\Cache
      */
-    public function getMultiple($keys, $default = null)
+    public function getMultiple(iterable $keys, mixed $default = null) : iterable
     {
         $keys = $this->keys($keys);
 
@@ -149,7 +145,7 @@ class RedisCache implements Cache, AtomicCounter
     /**
      * @inheritDoc Vectorface\Cache\Cache
      */
-    public function setMultiple($values, $ttl = null)
+    public function setMultiple(iterable $values, DateInterval|int|null $ttl = null) : bool
     {
         $ttl = $this->ttl($ttl);
 
@@ -182,7 +178,7 @@ class RedisCache implements Cache, AtomicCounter
     /**
      * @inheritDoc Vectorface\Cache\Cache
      */
-    public function deleteMultiple($keys)
+    public function deleteMultiple(iterable $keys) : bool
     {
         if (empty($keys)) {
             return true;
@@ -194,47 +190,26 @@ class RedisCache implements Cache, AtomicCounter
     /**
      * @inheritdoc AtomicCounter
      */
-    public function increment($key, $step = 1, $ttl = null)
+    public function increment(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
     {
-        $ttl = $this->ttl($ttl);
-        $key = $this->key($key);
-        $step = $this->step($step);
-
-        // We can't just use incrby because it doesn't support expiry,
-        // so we use multi-exec instead.
-        $this->redis->multi();
-
-        // Set only if the key does not exist (safely sets expiry only if doesn't exist).
-        // The two redis clients have different advanced set APIs for this.
-        // They also don't support null or TTLs under 1, so we need to just use setnx in that case.
-        if ($ttl === null || $ttl < 1) {
-            $this->redis->setnx($key, 0);
-        } else {
-            if ($this->redis instanceof Redis) {
-                $this->redis->set($key, 0, ['NX', 'EX' => $ttl]);
-            } else {
-                $this->redis->set($key, 0, $ttl, null, 'NX');
-            }
-        }
-
-        $this->redis->incrby($key, $step);
-
-        $result = $this->redis->exec();
-
-        // Since we ran two commands, the 1 index should be the incrby result
-        return $result[1] ?? false;
+        return $this->atomicCounter('incrby', $key, $step, $ttl);
     }
 
     /**
      * @inheritdoc AtomicCounter
      */
-    public function decrement($key, $step = 1, $ttl = null)
+    public function decrement(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
+    {
+        return $this->atomicCounter('decrby', $key, $step, $ttl);
+    }
+
+    private function atomicCounter(string $method, string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
     {
         $ttl = $this->ttl($ttl);
         $key = $this->key($key);
         $step = $this->step($step);
 
-        // We can't just use incrby because it doesn't support expiry,
+        // We can't just use incrby/decrby because it doesn't support expiry,
         // so we use multi-exec instead.
         $this->redis->multi();
 
@@ -251,21 +226,21 @@ class RedisCache implements Cache, AtomicCounter
             }
         }
 
-        $this->redis->decrby($key, $step);
+        $this->redis->{$method}($key, $step);
 
         $result = $this->redis->exec();
 
-        // Since we ran two commands, the 1 index should be the incrby result
+        // Since we ran two commands, the 1 index should be the incrby/decrby result
         return $result[1] ?? false;
     }
 
     /**
      * Override of {@see PSR16Util::key} to allow for having a cache prefix
      *
-     * @param string $key
+     * @param mixed $key
      * @return string
      */
-    private function key($key)
+    private function key(mixed $key) : string
     {
         return $this->prefix . $this->PSR16Key($key);
     }

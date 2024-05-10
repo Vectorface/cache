@@ -2,6 +2,7 @@
 
 namespace Vectorface\Cache;
 
+use DateInterval;
 use Vectorface\Cache\Common\PSR16Util;
 use Vectorface\Cache\Common\MultipleTrait;
 
@@ -22,14 +23,14 @@ class PHPCache implements Cache, AtomicCounter
      *
      * Each entry is an [expiry, value] pair, where expiry is a timestamp.
      *
-     * @var mixed[]
+     * @var array{int, mixed}[]
      */
-    protected $cache = [];
+    protected array $cache = [];
 
     /**
      * @inheritDoc
      */
-    public function get($key, $default = null)
+    public function get(string $key, mixed $default = null) : mixed
     {
         $key = $this->key($key);
         if (isset($this->cache[$key])) {
@@ -45,7 +46,7 @@ class PHPCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function set($key, $value, $ttl = null)
+    public function set(string $key, mixed $value, DateInterval|int|null $ttl = null) : bool
     {
         /* Cache gets a microtime expiry date. */
         $ttl = $this->ttl($ttl);
@@ -59,7 +60,7 @@ class PHPCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function delete($key)
+    public function delete(string $key) : bool
     {
         unset($this->cache[$this->key($key)]);
         return true;
@@ -68,7 +69,7 @@ class PHPCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function clean()
+    public function clean() : bool
     {
         foreach ($this->cache as $key => $value) {
             list($expires) = $value;
@@ -82,7 +83,7 @@ class PHPCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function flush()
+    public function flush() : bool
     {
         $this->cache = [];
         return true;
@@ -91,7 +92,7 @@ class PHPCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function clear()
+    public function clear() : bool
     {
         return $this->flush();
     }
@@ -99,7 +100,7 @@ class PHPCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function has($key)
+    public function has(string $key) : bool
     {
         return $this->get($this->key($key)) !== null;
     }
@@ -107,7 +108,7 @@ class PHPCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function increment($key, $step = 1, $ttl = null)
+    public function increment(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
     {
         $key = $this->key($key);
         $exists = $this->has($key);
@@ -119,12 +120,8 @@ class PHPCache implements Cache, AtomicCounter
     /**
      * @inheritDoc
      */
-    public function decrement($key, $step = 1, $ttl = null)
+    public function decrement(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
     {
-        $key = $this->key($key);
-        $exists = $this->has($key);
-        $newValue = $this->get($key, 0) - $this->step($step);
-        $this->set($key, $newValue, (!$exists ? $ttl : null));
-        return $newValue;
+        return $this->increment($key, -$step, $ttl);
     }
 }
