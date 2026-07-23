@@ -129,6 +129,7 @@ class SQLCache implements Cache, AtomicCounter
             return $default;
         }
         $result = $stmt->fetchColumn();
+        $stmt->closeCursor();
         if (empty($result)) {
             return $default;
         }
@@ -154,6 +155,7 @@ class SQLCache implements Cache, AtomicCounter
             ));
             $stmt->execute($sqlKeys);
             $result = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+            $stmt->closeCursor();
         } catch (PDOException) {
             $result = [];
         }
@@ -290,7 +292,9 @@ class SQLCache implements Cache, AtomicCounter
         } catch (PDOException) {
             return false;
         }
-        return (bool)$stmt->fetchColumn();
+        $result = (bool)$stmt->fetchColumn();
+        $stmt->closeCursor();
+        return $result;
     }
 
     /**
