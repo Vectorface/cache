@@ -26,8 +26,17 @@ class PhpRedisExtensionCacheTest extends GenericCacheTest
 
         $this->assertTrue($cache->setMultiple(['a' => 1, 'b' => 2]));
         $this->assertEquals(['a' => 1, 'b' => 2, 'c' => 'dflt'], $cache->getMultiple(['a', 'b', 'c'], 'dflt'));
-        $this->assertEquals(1, $redis->get('pfx:a'));
+        $this->assertTrue($redis->exists('pfx:a') > 0);
         $this->assertTrue($cache->deleteMultiple(['a', 'b']));
+    }
+
+    public function testValueTypes()
+    {
+        foreach ([17, 1.5, true, false, null, ['a' => [1, 2]], (object)['x' => 1]] as $value) {
+            $this->assertTrue($this->cache->set('typed', $value));
+            $this->assertSame(serialize($value), serialize($this->cache->get('typed', 'dflt')));
+        }
+        $this->assertTrue($this->cache->delete('typed'));
     }
 
     public function testBadConstructor()

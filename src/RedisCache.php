@@ -50,7 +50,7 @@ class RedisCache implements Cache, AtomicCounter
         // Not found is 'false' in phpredis, 'null' in php-redis-client
         $notFoundResult = ($this->redis instanceof Redis) ? false : null;
 
-        return ($result !== $notFoundResult) ? $result : $default;
+        return ($result !== $notFoundResult) ? $this->unpack($result) : $default;
     }
 
     /**
@@ -62,10 +62,10 @@ class RedisCache implements Cache, AtomicCounter
 
         // The setex function doesn't support null TTL, so we use set instead
         if ($ttl === null) {
-            return $this->redis->set($this->key($key), $value);
+            return $this->redis->set($this->key($key), serialize($value));
         }
 
-        return $this->redis->setex($this->key($key), $ttl, $value);
+        return $this->redis->setex($this->key($key), $ttl, serialize($value));
     }
 
     /**
@@ -133,7 +133,7 @@ class RedisCache implements Cache, AtomicCounter
             if (!isset($values[$index]) || $values[$index] === false) {
                 $results[$key] = $default;
             } else {
-                $results[$key] = $values[$index];
+                $results[$key] = $this->unpack($values[$index]);
             }
         }
 
@@ -154,9 +154,9 @@ class RedisCache implements Cache, AtomicCounter
         foreach ($this->values($values) as $key => $value) {
             // Null or TTLs under 1 aren't supported, so we need to just use set in that case.
             if ($ttl === null || $ttl < 1) {
-                $this->redis->set($key, $value);
+                $this->redis->set($key, serialize($value));
             } else {
-                $this->redis->setex($key, $ttl, $value);
+                $this->redis->setex($key, $ttl, serialize($value));
             }
         }
 
@@ -230,6 +230,19 @@ class RedisCache implements Cache, AtomicCounter
 
         // Since we ran two commands, the 1 index should be the incrby/decrby result
         return $result[1] ?? false;
+    }
+
+    /**
+     * Unserialize a stored value; raw (unserialized) values such as counters are returned as-is
+     */
+    private function unpack(mixed $raw) : mixed
+    {
+        if (!is_string($raw)) {
+            return $raw;
+        }
+
+        $value = @unserialize($raw);
+        return ($value === false && $raw !== serialize(false)) ? $raw : $value;
     }
 
     /**
