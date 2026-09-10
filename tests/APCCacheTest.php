@@ -13,4 +13,11 @@ class APCCacheTest extends GenericCacheTest
         }
         $this->cache = new APCCache();
     }
+
+    public function testCachedFalse()
+    {
+        $this->cache->set('f', false);
+        $this->assertFalse($this->cache->get('f', 'dflt'));
+        $this->assertEquals('dflt', $this->cache->get('missing', 'dflt'));
+    }
 }
