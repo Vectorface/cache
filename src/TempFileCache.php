@@ -5,7 +5,6 @@ namespace Vectorface\Cache;
 
 use DateInterval;
 use Exception;
-use Psr\SimpleCache\InvalidArgumentException;
 use Vectorface\Cache\Common\MultipleTrait;
 use Vectorface\Cache\Common\PSR16Util;
 
@@ -139,15 +138,11 @@ class TempFileCache implements Cache
             return false;
         }
 
+        $now = microtime(true);
         foreach ($files as $file) {
-            $key = basename($file, $this->extension);
-            try {
-                // Automatically deletes if expired
-                $this->get($key);
-                // @codeCoverageIgnoreStart
-            } catch (InvalidArgumentException) {
-                return false;
-                // @codeCoverageIgnoreEnd
+            $data = @unserialize((string)@file_get_contents($file));
+            if (!$data || ($data[0] !== false && $data[0] < $now)) {
+                @unlink($file); /* Expired or corrupted */
             }
         }
         return true;

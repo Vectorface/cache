@@ -86,6 +86,21 @@ class TempFileCacheTest extends GenericCacheTest
         $this->assertNull($this->cache->get('foo'));
     }
 
+    public function testClean()
+    {
+        $this->cache->set('expired', 'v', 1);
+        $this->cache->set('eternal', 'v');
+        $this->cache->set('fresh', 'v', 100);
+        sleep(2);
+
+        $this->assertTrue($this->cache->clean());
+        $this->assertEquals('v', $this->cache->get('eternal'));
+        $this->assertEquals('v', $this->cache->get('fresh'));
+
+        $dir = $this->directory();
+        $this->assertCount(2, glob("$dir/*.tempcache"));
+    }
+
     public function testBrokenRealpath()
     {
         FakeRealpath::$broken = true;
@@ -96,5 +111,12 @@ class TempFileCacheTest extends GenericCacheTest
             $this->assertTrue($e instanceof Exception);
         }
         FakeRealpath::$broken = false;
+    }
+
+    private function directory() : string
+    {
+        $prop = new \ReflectionProperty($this->cache, 'directory');
+        $prop->setAccessible(true); /* Needed on PHP 8.0 */
+        return $prop->getValue($this->cache);
     }
 }
