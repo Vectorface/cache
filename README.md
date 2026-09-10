@@ -26,7 +26,8 @@ The interface supports optional time-to-live (expiry) where supported by the und
 ## Available Implementations
 
 * `APCCache`: APC or APCu.
-* `MCCache`: Memcache
+* `MCCache`: Memcache, using the [memcache](https://pecl.php.net/package/memcache) extension
+* `MemcachedCache`: Memcache, using the [memcached](https://pecl.php.net/package/memcached) extension
 * `RedisCache`: Redis, using either the [phpredis](https://github.com/phpredis/phpredis) extension or the [php-redis-client](https://github.com/cheprasov/php-redis-client) library
 * `NullCache`: A blackhole for your data
 * `PHPCache`: Stores values in a local variable, for one script execution only.
