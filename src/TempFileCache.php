@@ -118,7 +118,15 @@ class TempFileCache implements Cache
     {
         $ttl = $this->ttl($ttl);
         $data = [$ttl ? microtime(true) + $ttl : false, $value];
-        return @file_put_contents($this->makePath($this->key($key)), serialize($data)) !== false;
+
+        // Write to a temporary file and rename it into place so readers never see a partial write
+        $path = $this->makePath($this->key($key));
+        $temp = @tempnam($this->directory, 'tmp');
+        if ($temp === false || @file_put_contents($temp, serialize($data)) === false || !@rename($temp, $path)) {
+            @unlink($temp);
+            return false;
+        }
+        return true;
     }
 
     /**
