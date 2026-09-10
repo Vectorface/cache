@@ -111,9 +111,12 @@ class PHPCache implements Cache, AtomicCounter
     public function increment(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
     {
         $key = $this->key($key);
-        $exists = $this->has($key);
         $newValue = $this->get($key, 0) + $this->step($step);
-        $this->set($key, $newValue, (!$exists ? $ttl : null));
+        if (isset($this->cache[$key])) {
+            $this->cache[$key][1] = $newValue; /* Keep the existing expiry */
+        } else {
+            $this->set($key, $newValue, $ttl);
+        }
         return $newValue;
     }
 
