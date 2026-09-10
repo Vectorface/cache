@@ -101,6 +101,16 @@ class TempFileCacheTest extends GenericCacheTest
         $this->assertCount(2, glob("$dir/*.tempcache"));
     }
 
+    public function testSetLeavesNoTemporaryFiles()
+    {
+        $this->assertTrue($this->cache->set('a', 'v'));
+        $this->assertTrue($this->cache->set('a', 'w'));
+        $this->assertEquals('w', $this->cache->get('a'));
+
+        $dir = $this->directory();
+        $this->assertCount(1, array_diff(scandir($dir), ['.', '..']));
+    }
+
     public function testBrokenRealpath()
     {
         FakeRealpath::$broken = true;
