@@ -208,9 +208,9 @@ class SQLCache implements Cache, AtomicCounter
         }
 
         try {
+            // Don't check rowCount: MySQL reports 0 affected rows when the update changes nothing
             $stmt = $this->getStatement(__METHOD__ . ".update", self::UPDATE_SQL);
-            $success = $stmt->execute([$value, $ttl, $key]);
-            return $success && $stmt->rowCount() === 1;
+            return $stmt->execute([$value, $ttl, $key]);
         } catch (PDOException) {
             return false;
         }
