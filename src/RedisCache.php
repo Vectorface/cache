@@ -117,16 +117,16 @@ class RedisCache implements Cache, AtomicCounter
      */
     public function getMultiple(iterable $keys, mixed $default = null) : iterable
     {
-        $keys = $this->keys($keys);
+        // Unprefixed keys for the result array; prefixed keys for the lookup
+        $keys = is_array($keys) ? array_values($keys) : iterator_to_array($keys, false);
+        $keys = array_map([$this, 'PSR16Key'], $keys);
 
         // Some redis client impls don't work with empty args, so return early.
         if (empty($keys)) {
             return [];
         }
 
-        $values = $this->redis->mget($keys);
-        // var_dump("Keys: " . json_encode($keys));
-        // var_dump("Values: " . json_encode($values));
+        $values = $this->redis->mget(array_map([$this, 'key'], $keys));
 
         $results = [];
         foreach ($keys as $index => $key) {
@@ -136,8 +136,6 @@ class RedisCache implements Cache, AtomicCounter
                 $results[$key] = $values[$index];
             }
         }
-        // var_dump("Results: " . json_encode($results));
-        // echo "\n\n";
 
         return $results;
     }
