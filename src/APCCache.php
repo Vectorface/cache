@@ -22,23 +22,18 @@ use Vectorface\Cache\Common\PSR16Util;
  */
 
 /**
- * Implements the Cache interface on top of APC or APCu.
+ * Implements the Cache interface on top of APCu.
  */
 class APCCache implements Cache, AtomicCounter
 {
     use PSR16Util;
 
     /**
-     * The module name that defines the APC methods.
-     */
-    private string $apcModule = 'apcu';
-
-    /**
      * @inheritDoc
      */
     public function get(string $key, mixed $default = null) : mixed
     {
-        $value = $this->call('fetch', $this->key($key));
+        $value = apcu_fetch($this->key($key));
         return ($value === false) ? $default : $value;
     }
 
@@ -47,7 +42,7 @@ class APCCache implements Cache, AtomicCounter
      */
     public function set(string $key, mixed $value, DateInterval|int|null $ttl = null) : bool
     {
-        return $this->call('store', $this->key($key), $value, $this->ttl($ttl));
+        return apcu_store($this->key($key), $value, $this->ttl($ttl) ?? 0);
     }
 
     /**
@@ -55,7 +50,7 @@ class APCCache implements Cache, AtomicCounter
      */
     public function delete($key) : bool
     {
-        return $this->call('delete', $this->key($key));
+        return apcu_delete($this->key($key));
     }
 
     /**
@@ -71,7 +66,7 @@ class APCCache implements Cache, AtomicCounter
      */
     public function flush() : bool
     {
-        return $this->call('clear_cache');
+        return apcu_clear_cache();
     }
 
     /**
@@ -88,11 +83,7 @@ class APCCache implements Cache, AtomicCounter
     public function getMultiple(iterable $keys, mixed $default = null) : iterable
     {
         $keys = $this->keys($keys);
-        return $this->defaults(
-            $keys,
-            $this->call('fetch', $keys),
-            $default
-        );
+        return $this->defaults($keys, apcu_fetch($keys), $default);
     }
 
     /**
@@ -100,12 +91,7 @@ class APCCache implements Cache, AtomicCounter
      */
     public function setMultiple(iterable $values, DateInterval|int|null $ttl = null) : bool
     {
-        $results = $this->call(
-            'store',
-            $this->values($values),
-            null,
-            $this->ttl($ttl)
-        );
+        $results = apcu_store($this->values($values), null, $this->ttl($ttl) ?? 0);
         return array_reduce($results, static fn($carry, $item) => $carry && $item, true);
     }
 
@@ -116,7 +102,7 @@ class APCCache implements Cache, AtomicCounter
     {
         $success = true;
         foreach ($this->keys($keys) as $key) {
-            $success = $this->call('delete', $key) && $success;
+            $success = apcu_delete($key) && $success;
         }
 
         return $success;
@@ -127,15 +113,15 @@ class APCCache implements Cache, AtomicCounter
      */
     public function has(string $key) : bool
     {
-        return $this->call('exists', $this->key($key));
+        return apcu_exists($this->key($key));
     }
 
     /**
      * @inheritDoc
      */
-    public function increment(string $key, int $step = 1, DateInterval|int|null  $ttl = null) : int|false
+    public function increment(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
     {
-        return $this->call('inc', $this->key($key), $this->step($step), null, $this->ttl($ttl));
+        return apcu_inc($this->key($key), $this->step($step), $success, $this->ttl($ttl) ?? 0);
     }
 
     /**
@@ -143,19 +129,6 @@ class APCCache implements Cache, AtomicCounter
      */
     public function decrement(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
     {
-        return $this->call('dec', $this->key($key), $this->step($step), null, $this->ttl($ttl));
-    }
-
-    /**
-     * Pass a call through to APC or APCu
-     * @param string $call Transformed to a function apc(u)_$call
-     * @param mixed ...$args Function arguments
-     * @return mixed The result passed through from apc(u)_$call
-     */
-    private function call(string $call, ...$args) : mixed
-    {
-        $function = "{$this->apcModule}_{$call}";
-
-        return $function(...$args);
+        return apcu_dec($this->key($key), $this->step($step), $success, $this->ttl($ttl) ?? 0);
     }
 }

@@ -25,7 +25,7 @@ The interface supports optional time-to-live (expiry) where supported by the und
 
 ## Available Implementations
 
-* `APCCache`: APC or APCu.
+* `APCCache`: APCu, using the [apcu](https://pecl.php.net/package/APCu) extension
 * `MCCache`: Memcache, using the [memcache](https://pecl.php.net/package/memcache) extension
 * `MemcachedCache`: Memcache, using the [memcached](https://pecl.php.net/package/memcached) extension
 * `RedisCache`: Redis, using either the [phpredis](https://github.com/phpredis/phpredis) extension or the [php-redis-client](https://github.com/cheprasov/php-redis-client) library
