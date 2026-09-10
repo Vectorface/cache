@@ -108,6 +108,14 @@ class SQLCacheTest extends GenericCacheTest
     /**
      * @throws CacheException
      */
+    public function testCountingLongKey()
+    {
+        $key = str_repeat("a", 100);
+        $this->assertEquals(1, $this->cache->increment($key));
+        $this->assertEquals(3, $this->cache->increment($key, 2));
+        $this->assertEquals(3, $this->cache->get($key));
+    }
+
     public function testFailTransaction()
     {
         $pdoMock = $this->createMock(PDO::class);

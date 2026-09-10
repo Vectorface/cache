@@ -315,7 +315,7 @@ class SQLCache implements Cache, AtomicCounter
             $next = ($current ?? 0) + $step;
             if ($current !== null) {
                 $stmt = $this->getStatement(__METHOD__, self::UPDATE_INCREMENT_SQL);
-                $result = $stmt->execute([serialize($next), $key]) && $stmt->rowCount() === 1;
+                $result = $stmt->execute([serialize($next), $this->hashKey($this->key($key))]) && $stmt->rowCount() === 1;
             } else {
                 $result = $this->set($key, $next, $ttl);
             }
