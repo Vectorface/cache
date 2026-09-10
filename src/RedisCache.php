@@ -65,6 +65,11 @@ class RedisCache implements Cache, AtomicCounter
             return $this->redis->set($this->key($key), serialize($value));
         }
 
+        // PSR-16: a TTL of zero or less means the item is already expired
+        if ($ttl < 1) {
+            return $this->delete($key);
+        }
+
         return $this->redis->setex($this->key($key), $ttl, serialize($value));
     }
 
@@ -152,9 +157,10 @@ class RedisCache implements Cache, AtomicCounter
         $this->redis->multi();
 
         foreach ($this->values($values) as $key => $value) {
-            // Null or TTLs under 1 aren't supported, so we need to just use set in that case.
-            if ($ttl === null || $ttl < 1) {
+            if ($ttl === null) {
                 $this->redis->set($key, serialize($value));
+            } elseif ($ttl < 1) {
+                $this->redis->del($key); // PSR-16: already expired
             } else {
                 $this->redis->setex($key, $ttl, serialize($value));
             }

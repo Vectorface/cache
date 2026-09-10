@@ -39,6 +39,17 @@ class PhpRedisExtensionCacheTest extends GenericCacheTest
         $this->assertTrue($this->cache->delete('typed'));
     }
 
+    public function testExpiredTtl()
+    {
+        $this->assertTrue($this->cache->set('exp', 'v'));
+        $this->assertTrue($this->cache->set('exp', 'v', 0));
+        $this->assertFalse($this->cache->has('exp'));
+        $this->assertTrue($this->cache->setMultiple(['exp' => 'v', 'exp2' => 'v']));
+        $this->assertTrue($this->cache->setMultiple(['exp' => 'v', 'exp2' => 'v'], -1));
+        $this->assertFalse($this->cache->has('exp'));
+        $this->assertFalse($this->cache->has('exp2'));
+    }
+
     public function testBadConstructor()
     {
         $this->expectException(InvalidArgumentException::class);
