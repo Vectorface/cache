@@ -69,6 +69,12 @@ class PhpRedisExtensionCacheTest extends GenericCacheTest
         $this->assertTrue($this->cache->delete('after'));
     }
 
+    public function testDeleteMissing()
+    {
+        $this->assertTrue($this->cache->delete('missing'));
+        $this->assertTrue($this->cache->deleteMultiple(['missing', 'missing2']));
+    }
+
     public function testBadConstructor()
     {
         $this->expectException(InvalidArgumentException::class);

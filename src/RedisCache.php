@@ -78,7 +78,8 @@ class RedisCache implements Cache, AtomicCounter
      */
     public function delete(string $key) : bool
     {
-        return (bool)$this->redis->del($this->key($key));
+        // DEL returns the count removed; a missing key is not a failure
+        return $this->redis->del($this->key($key)) !== false;
     }
 
     /**
@@ -214,7 +215,7 @@ class RedisCache implements Cache, AtomicCounter
             return true;
         }
 
-        return (bool)$this->redis->del($this->keys($keys));
+        return $this->redis->del($this->keys($keys)) !== false;
     }
 
     /**
