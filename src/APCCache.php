@@ -91,8 +91,9 @@ class APCCache implements Cache, AtomicCounter
      */
     public function setMultiple(iterable $values, DateInterval|int|null $ttl = null) : bool
     {
-        $results = apcu_store($this->values($values), null, $this->ttl($ttl) ?? 0);
-        return array_reduce($results, static fn($carry, $item) => $carry && $item, true);
+        // Storing an array returns the list of keys that failed; empty means success
+        $failed = apcu_store($this->values($values), null, $this->ttl($ttl) ?? 0);
+        return empty($failed);
     }
 
     /**
