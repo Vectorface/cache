@@ -211,11 +211,14 @@ class RedisCache implements Cache, AtomicCounter
      */
     public function deleteMultiple(iterable $keys) : bool
     {
+        $keys = $this->keys($keys);
+
+        // Some redis client impls don't work with empty args, so return early.
         if (empty($keys)) {
             return true;
         }
 
-        return $this->redis->del($this->keys($keys)) !== false;
+        return $this->redis->del($keys) !== false;
     }
 
     /**

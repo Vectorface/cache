@@ -73,6 +73,7 @@ class PhpRedisExtensionCacheTest extends GenericCacheTest
     {
         $this->assertTrue($this->cache->delete('missing'));
         $this->assertTrue($this->cache->deleteMultiple(['missing', 'missing2']));
+        $this->assertTrue($this->cache->deleteMultiple((function () { yield from []; })()));
     }
 
     public function testBadConstructor()
