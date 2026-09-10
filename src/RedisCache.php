@@ -94,11 +94,36 @@ class RedisCache implements Cache, AtomicCounter
      */
     public function flush() : bool
     {
-        if ($this->redis instanceof Redis) {
-            return (bool)$this->redis->flushDB();
+        // Without a prefix, the whole DB is ours
+        if ($this->prefix === '') {
+            return (bool)$this->redis->flushdb();
         }
 
-        return (bool)$this->redis->flushdb(); // We probably don't actually want to do this
+        // With a prefix, only remove our keys. Escape glob characters in the prefix.
+        $pattern = strtr($this->prefix, ['*' => '\*', '?' => '\?', '[' => '\[', ']' => '\]', '\\' => '\\\\']) . '*';
+
+        if ($this->redis instanceof Redis) {
+            $iterator = null;
+            while (($keys = $this->redis->scan($iterator, $pattern, 1000)) !== false) {
+                if ($keys) {
+                    $this->redis->del($keys);
+                }
+                if ($iterator == 0) {
+                    break;
+                }
+            }
+            return true;
+        }
+
+        $cursor = 0;
+        do {
+            [$cursor, $keys] = $this->redis->scan($cursor, $pattern, 1000);
+            if ($keys) {
+                $this->redis->del($keys);
+            }
+        } while ($cursor != 0);
+
+        return true;
     }
 
     /**

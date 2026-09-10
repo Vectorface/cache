@@ -28,7 +28,13 @@ class PhpRedisExtensionCacheTest extends GenericCacheTest
         $this->assertTrue($cache->setMultiple(['a' => 1, 'b' => 2]));
         $this->assertEquals(['a' => 1, 'b' => 2, 'c' => 'dflt'], $cache->getMultiple(['a', 'b', 'c'], 'dflt'));
         $this->assertTrue($redis->exists('pfx:a') > 0);
-        $this->assertTrue($cache->deleteMultiple(['a', 'b']));
+
+        // flush() only removes prefixed keys
+        $this->assertTrue($this->cache->set('unprefixed', 'v'));
+        $this->assertTrue($cache->flush());
+        $this->assertFalse($cache->has('a'));
+        $this->assertTrue($this->cache->has('unprefixed'));
+        $this->assertTrue($this->cache->delete('unprefixed'));
     }
 
     public function testValueTypes()
