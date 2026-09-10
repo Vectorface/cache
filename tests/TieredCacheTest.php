@@ -60,6 +60,24 @@ class TieredCacheTest extends TestCase
         $this->assertEquals('bar', $php2->get('foo'));
     }
 
+    public function testGetMultipleTiers()
+    {
+        $fast = new PHPCache();
+        $slow = new PHPCache();
+        $fast->set('x', 'fast-x');
+        $slow->set('x', 'slow-x');
+        $slow->set('y', 'slow-y');
+        $fast->set('z', 0);
+        $fast->set('e', '');
+        $cache = new TieredCache([$fast, $slow]);
+
+        /* Faster tier wins, falsy values aren't misses, missing keys get the default, order is preserved. */
+        $this->assertSame(
+            ['x' => 'fast-x', 'y' => 'slow-y', 'z' => 0, 'e' => '', 'n' => 'dflt'],
+            $cache->getMultiple(new \ArrayIterator(['x', 'y', 'z', 'e', 'n']), 'dflt')
+        );
+    }
+
     public function testBadArg()
     {
         $this->expectException(TypeError::class);
