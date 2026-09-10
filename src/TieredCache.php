@@ -112,29 +112,27 @@ class TieredCache implements Cache
      */
     public function getMultiple(iterable $keys, mixed $default = null) : iterable
     {
-        $neededKeys = $keys;
+        $keys = $this->keys($keys);
         $values = [];
         foreach ($this->caches as $cache) {
-            $result = $cache->getMultiple($neededKeys);
-            $values = array_merge(
-                $values,
-                array_filter(is_array($result) ? $result : iterator_to_array($result, true))
-            );
-            if (count($values) === count($keys)) {
-                return $values;
+            $neededKeys = array_diff($keys, array_keys($values));
+            if (empty($neededKeys)) {
+                break;
             }
-
-            $neededKeys = array_diff($keys, $values);
+            foreach ($cache->getMultiple($neededKeys) as $key => $value) {
+                if ($value !== null) {
+                    $values[$key] = $value;
+                }
+            }
         }
 
-        /* Finally, set defaults */
+        /* Preserve requested key order, and set defaults */
+        $results = [];
         foreach ($keys as $key) {
-            if (!isset($values[$key])) {
-                $values[$key] = $default;
-            }
+            $results[$key] = $values[$key] ?? $default;
         }
 
-        return $values;
+        return $results;
     }
 
     /**
