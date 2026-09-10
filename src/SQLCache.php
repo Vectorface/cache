@@ -119,11 +119,24 @@ class SQLCache implements Cache, AtomicCounter
      */
     public function get(string $key, mixed $default = null) : mixed
     {
-        $key = $this->key($key);
-        $key = $this->hashKey($key);
+        return $this->fetch($this->hashKey($this->key($key)), false, $default);
+    }
 
+    /**
+     * Fetch an entry by its (hashed) key, optionally locking the row for the current transaction.
+     *
+     * @param string $key The hashed key
+     * @param bool $lock Lock the row (SELECT ... FOR UPDATE) where the driver supports it
+     * @param mixed $default The value to return if there is no entry
+     */
+    private function fetch(string $key, bool $lock, mixed $default) : mixed
+    {
+        $lock = $lock && $this->supportsRowLocks();
         try {
-            $stmt = $this->getStatement(__METHOD__, self::GET_SQL);
+            $stmt = $this->getStatement(
+                __METHOD__ . ($lock ? '.lock' : ''),
+                self::GET_SQL . ($lock ? ' FOR UPDATE' : '')
+            );
             $stmt->execute([$key]);
         } catch (PDOException) {
             return $default;
@@ -134,6 +147,14 @@ class SQLCache implements Cache, AtomicCounter
             return $default;
         }
         return unserialize($result);
+    }
+
+    /**
+     * Whether the underlying driver supports SELECT ... FOR UPDATE
+     */
+    private function supportsRowLocks() : bool
+    {
+        return in_array($this->conn->getAttribute(PDO::ATTR_DRIVER_NAME), ['mysql', 'pgsql'], true);
     }
 
     /**
@@ -311,7 +332,8 @@ class SQLCache implements Cache, AtomicCounter
                 return false;
             }
 
-            $current = $this->get($key);
+            // Lock the row so concurrent increments serialize on it rather than both reading the same value
+            $current = $this->fetch($this->hashKey($this->key($key)), true, null);
             $next = ($current ?? 0) + $step;
             if ($current !== null) {
                 $stmt = $this->getStatement(__METHOD__, self::UPDATE_INCREMENT_SQL);

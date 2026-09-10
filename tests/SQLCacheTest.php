@@ -116,6 +116,32 @@ class SQLCacheTest extends GenericCacheTest
         $this->assertEquals(3, $this->cache->get($key));
     }
 
+    public function testIncrementLocksRowWhereSupported()
+    {
+        $sql = [];
+        $stmt = $this->createMock(\PDOStatement::class);
+        $stmt->method('execute')->willReturn(true);
+        $stmt->method('fetchColumn')->willReturn(serialize(4));
+        $stmt->method('rowCount')->willReturn(1);
+
+        $pdo = $this->createMock(PDO::class);
+        $pdo->method('getAttribute')->with(PDO::ATTR_DRIVER_NAME)->willReturn('mysql');
+        $pdo->method('beginTransaction')->willReturn(true);
+        $pdo->method('commit')->willReturn(true);
+        $pdo->method('prepare')->willReturnCallback(function($s) use (&$sql, $stmt) {
+            $sql[] = $s;
+            return $stmt;
+        });
+
+        $cache = new SQLCache($pdo);
+        $this->assertEquals(5, $cache->increment('foo'));
+        $this->assertEquals(SQLCache::GET_SQL . ' FOR UPDATE', $sql[0]);
+
+        /* Plain get() must not lock */
+        $this->assertEquals(4, $cache->get('foo'));
+        $this->assertEquals(SQLCache::GET_SQL, $sql[2]);
+    }
+
     public function testFailTransaction()
     {
         $pdoMock = $this->createMock(PDO::class);
