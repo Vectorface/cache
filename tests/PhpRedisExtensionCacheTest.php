@@ -5,6 +5,7 @@ namespace Vectorface\Tests\Cache;
 
 use InvalidArgumentException;
 use Redis;
+use stdClass;
 use Vectorface\Cache\RedisCache;
 
 class PhpRedisExtensionCacheTest extends GenericCacheTest
@@ -48,6 +49,18 @@ class PhpRedisExtensionCacheTest extends GenericCacheTest
         $this->assertTrue($this->cache->setMultiple(['exp' => 'v', 'exp2' => 'v'], -1));
         $this->assertFalse($this->cache->has('exp'));
         $this->assertFalse($this->cache->has('exp2'));
+    }
+
+    public function testInvalidSetMultipleLeavesConnectionUsable()
+    {
+        try {
+            $this->cache->setMultiple((function () { yield 'ok' => 1; yield new stdClass() => 2; })());
+            $this->fail("Expected exception");
+        } catch (\Vectorface\Cache\Exception\InvalidArgumentException) {
+        }
+        $this->assertTrue($this->cache->set('after', 'v'));
+        $this->assertSame('v', $this->cache->get('after'));
+        $this->assertTrue($this->cache->delete('after'));
     }
 
     public function testBadConstructor()

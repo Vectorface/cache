@@ -151,12 +151,13 @@ class RedisCache implements Cache, AtomicCounter
     public function setMultiple(iterable $values, DateInterval|int|null $ttl = null) : bool
     {
         $ttl = $this->ttl($ttl);
+        $values = $this->values($values); // Validate before multi() so a failure can't leave it open
 
         // We can't use mset because there's no msetex for expiry,
         // so we use multi-exec instead.
         $this->redis->multi();
 
-        foreach ($this->values($values) as $key => $value) {
+        foreach ($values as $key => $value) {
             if ($ttl === null) {
                 $this->redis->set($key, serialize($value));
             } elseif ($ttl < 1) {
