@@ -142,6 +142,21 @@ class SQLCacheTest extends GenericCacheTest
         $this->assertEquals(SQLCache::GET_SQL, $sql[2]);
     }
 
+    public function testSetUnchangedValue()
+    {
+        /* Simulate MySQL, which reports 0 affected rows for an update that changes nothing */
+        $stmt = $this->createMock(\PDOStatement::class);
+        $stmt->method('execute')->willReturnOnConsecutiveCalls(
+            $this->throwException(new PDOException("duplicate key")),
+            true
+        );
+        $stmt->method('rowCount')->willReturn(0);
+        $pdo = $this->createMock(PDO::class);
+        $pdo->method('prepare')->willReturn($stmt);
+
+        $this->assertTrue((new SQLCache($pdo))->set('foo', 'bar'));
+    }
+
     public function testFailTransaction()
     {
         $pdoMock = $this->createMock(PDO::class);
