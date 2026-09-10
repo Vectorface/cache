@@ -99,6 +99,24 @@ $cache->set("foo", "bar"); // Sets a value in all caches.
 $cache->get("foo"); // Tries all caches in sequence. The fastest should succeed and return quickly.
 ```
 
+### Fetching with Stampede Protection
+
+`CacheHelper::fetch` wraps the common pattern of "get from cache, or compute and store". `CacheHelper::fetchProtected` does the same, but protects against cache stampedes (many requests recomputing the same expired value at once):
+
+* Values are probabilistically refreshed *before* they expire (["XFetch"](https://cseweb.ucsd.edu/~avattani/papers/cache_stampede.pdf)), with the chance rising as expiry approaches and scaled by how long the previous recomputation took. Tune with `$beta` (default `1.0`; higher refreshes earlier, `0` disables early refresh).
+* While one request refreshes, concurrent requests are served the stale value instead of also refreshing.
+* If the callback throws, the stale value is served and the error is logged, via the given PSR-3 logger or `error_log`.
+
+Entries are stored for `$ttl + $staleTtl` (default: `2 * $ttl`) so the stale value is available for these protections. Don't share keys between `fetch` and `fetchProtected`.
+
+```php
+use Vectorface\Cache\APCCache;
+use Vectorface\Cache\CacheHelper;
+
+$cache = new APCCache();
+$dataset = CacheHelper::fetchProtected($cache, "SomeClass::LargeDataset($arg)", [SomeClass::class, 'getLargeDatasetFromDB'], [$arg], 600);
+```
+
 ### PSR-16 Support
 
 If you need interoperability with other tooling that support PSR-16 SimpleCache, you may use the `SimpleCacheAdapter` class which can wrap any of the cache implementations in this library.
