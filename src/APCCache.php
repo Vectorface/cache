@@ -33,8 +33,9 @@ class APCCache implements Cache, AtomicCounter
      */
     public function get(string $key, mixed $default = null) : mixed
     {
-        $value = apcu_fetch($this->key($key));
-        return ($value === false) ? $default : $value;
+        // Use the success flag so a cached false isn't mistaken for a miss
+        $value = apcu_fetch($this->key($key), $success);
+        return $success ? $value : $default;
     }
 
     /**
