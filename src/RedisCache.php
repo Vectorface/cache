@@ -50,7 +50,7 @@ class RedisCache implements Cache, AtomicCounter
         // Not found is 'false' in phpredis, 'null' in php-redis-client
         $notFoundResult = ($this->redis instanceof Redis) ? false : null;
 
-        return ($result !== $notFoundResult) ? $result : $default;
+        return ($result !== $notFoundResult) ? $this->unpack($result) : $default;
     }
 
     /**
@@ -62,10 +62,15 @@ class RedisCache implements Cache, AtomicCounter
 
         // The setex function doesn't support null TTL, so we use set instead
         if ($ttl === null) {
-            return $this->redis->set($this->key($key), $value);
+            return $this->redis->set($this->key($key), serialize($value));
         }
 
-        return $this->redis->setex($this->key($key), $ttl, $value);
+        // PSR-16: a TTL of zero or less means the item is already expired
+        if ($ttl < 1) {
+            return $this->delete($key);
+        }
+
+        return $this->redis->setex($this->key($key), $ttl, serialize($value));
     }
 
     /**
@@ -73,7 +78,8 @@ class RedisCache implements Cache, AtomicCounter
      */
     public function delete(string $key) : bool
     {
-        return (bool)$this->redis->del($this->key($key));
+        // DEL returns the count removed; a missing key is not a failure
+        return $this->redis->del($this->key($key)) !== false;
     }
 
     /**
@@ -89,11 +95,36 @@ class RedisCache implements Cache, AtomicCounter
      */
     public function flush() : bool
     {
-        if ($this->redis instanceof Redis) {
-            return (bool)$this->redis->flushDB();
+        // Without a prefix, the whole DB is ours
+        if ($this->prefix === '') {
+            return (bool)$this->redis->flushdb();
         }
 
-        return (bool)$this->redis->flushdb(); // We probably don't actually want to do this
+        // With a prefix, only remove our keys. Escape glob characters in the prefix.
+        $pattern = strtr($this->prefix, ['*' => '\*', '?' => '\?', '[' => '\[', ']' => '\]', '\\' => '\\\\']) . '*';
+
+        if ($this->redis instanceof Redis) {
+            $iterator = null;
+            while (($keys = $this->redis->scan($iterator, $pattern, 1000)) !== false) {
+                if ($keys) {
+                    $this->redis->del($keys);
+                }
+                if ($iterator == 0) {
+                    break;
+                }
+            }
+            return true;
+        }
+
+        $cursor = 0;
+        do {
+            [$cursor, $keys] = $this->redis->scan($cursor, $pattern, 1000);
+            if ($keys) {
+                $this->redis->del($keys);
+            }
+        } while ($cursor != 0);
+
+        return true;
     }
 
     /**
@@ -117,27 +148,25 @@ class RedisCache implements Cache, AtomicCounter
      */
     public function getMultiple(iterable $keys, mixed $default = null) : iterable
     {
-        $keys = $this->keys($keys);
+        // Unprefixed keys for the result array; prefixed keys for the lookup
+        $keys = is_array($keys) ? array_values($keys) : iterator_to_array($keys, false);
+        $keys = array_map([$this, 'PSR16Key'], $keys);
 
         // Some redis client impls don't work with empty args, so return early.
         if (empty($keys)) {
             return [];
         }
 
-        $values = $this->redis->mget($keys);
-        // var_dump("Keys: " . json_encode($keys));
-        // var_dump("Values: " . json_encode($values));
+        $values = $this->redis->mget(array_map([$this, 'key'], $keys));
 
         $results = [];
         foreach ($keys as $index => $key) {
             if (!isset($values[$index]) || $values[$index] === false) {
                 $results[$key] = $default;
             } else {
-                $results[$key] = $values[$index];
+                $results[$key] = $this->unpack($values[$index]);
             }
         }
-        // var_dump("Results: " . json_encode($results));
-        // echo "\n\n";
 
         return $results;
     }
@@ -148,17 +177,19 @@ class RedisCache implements Cache, AtomicCounter
     public function setMultiple(iterable $values, DateInterval|int|null $ttl = null) : bool
     {
         $ttl = $this->ttl($ttl);
+        $values = $this->values($values); // Validate before multi() so a failure can't leave it open
 
         // We can't use mset because there's no msetex for expiry,
         // so we use multi-exec instead.
         $this->redis->multi();
 
-        foreach ($this->values($values) as $key => $value) {
-            // Null or TTLs under 1 aren't supported, so we need to just use set in that case.
-            if ($ttl === null || $ttl < 1) {
-                $this->redis->set($key, $value);
+        foreach ($values as $key => $value) {
+            if ($ttl === null) {
+                $this->redis->set($key, serialize($value));
+            } elseif ($ttl < 1) {
+                $this->redis->del($key); // PSR-16: already expired
             } else {
-                $this->redis->setex($key, $ttl, $value);
+                $this->redis->setex($key, $ttl, serialize($value));
             }
         }
 
@@ -180,11 +211,14 @@ class RedisCache implements Cache, AtomicCounter
      */
     public function deleteMultiple(iterable $keys) : bool
     {
+        $keys = $this->keys($keys);
+
+        // Some redis client impls don't work with empty args, so return early.
         if (empty($keys)) {
             return true;
         }
 
-        return (bool)$this->redis->del($this->keys($keys));
+        return $this->redis->del($keys) !== false;
     }
 
     /**
@@ -232,6 +266,19 @@ class RedisCache implements Cache, AtomicCounter
 
         // Since we ran two commands, the 1 index should be the incrby/decrby result
         return $result[1] ?? false;
+    }
+
+    /**
+     * Unserialize a stored value; raw (unserialized) values such as counters are returned as-is
+     */
+    private function unpack(mixed $raw) : mixed
+    {
+        if (!is_string($raw)) {
+            return $raw;
+        }
+
+        $value = @unserialize($raw);
+        return ($value === false && $raw !== serialize(false)) ? $raw : $value;
     }
 
     /**
