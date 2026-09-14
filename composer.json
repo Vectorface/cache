@@ -37,6 +37,7 @@
         "ext-pdo": "Needed to support in an SQL database",
         "ext-apcu": "Needed to support caching in APC(u)",
         "ext-memcache": "Needed to support caching with the Memcache extension",
+        "ext-memcached": "Needed to support caching with the Memcached extension",
         "ext-redis": "Recommended for faster redis support"
     },
     "scripts": {
