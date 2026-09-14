@@ -111,6 +111,21 @@ class TempFileCacheTest extends GenericCacheTest
         $this->assertCount(1, array_diff(scandir($dir), ['.', '..']));
     }
 
+    public function testSetFailsWhenDirectoryIsGone()
+    {
+        $dir = $this->directory();
+        $this->assertTrue($this->cache->flush());
+        if (!@rmdir($dir)) {
+            $this->markTestSkipped("Unable to remove cache dir. Test can't continue.");
+        }
+
+        // The temp file can't be renamed into a missing directory; set() must fail and clean up after itself
+        $before = count(glob(sys_get_temp_dir() . '/tmp*'));
+        $this->assertFalse($this->cache->set('foo', 'bar'));
+        $this->assertNull($this->cache->get('foo'));
+        $this->assertCount($before, glob(sys_get_temp_dir() . '/tmp*'), "set() left a temporary file behind");
+    }
+
     public function testBrokenRealpath()
     {
         FakeRealpath::$broken = true;
