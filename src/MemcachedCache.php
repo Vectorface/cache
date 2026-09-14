@@ -151,7 +151,7 @@ class MemcachedCache implements Cache, AtomicCounter
         // Memcached's initial value argument needs the binary protocol; add() works with either
         $this->mc->add($key, 0, $this->ttl($ttl) ?? 0);
 
-        return $this->mc->increment($key, $this->step($step));
+        return $this->mc->increment($key, $step);
     }
 
     /**
@@ -164,6 +164,6 @@ class MemcachedCache implements Cache, AtomicCounter
         // Memcached's initial value argument needs the binary protocol; add() works with either
         $this->mc->add($key, 0, $this->ttl($ttl) ?? 0);
 
-        return $this->mc->decrement($key, $this->step($step));
+        return $this->mc->decrement($key, $step);
     }
 }

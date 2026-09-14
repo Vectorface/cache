@@ -123,7 +123,7 @@ class APCCache implements Cache, AtomicCounter
      */
     public function increment(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
     {
-        return apcu_inc($this->key($key), $this->step($step), $success, $this->ttl($ttl) ?? 0);
+        return apcu_inc($this->key($key), $step, $success, $this->ttl($ttl) ?? 0);
     }
 
     /**
@@ -131,6 +131,6 @@ class APCCache implements Cache, AtomicCounter
      */
     public function decrement(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
     {
-        return apcu_dec($this->key($key), $this->step($step), $success, $this->ttl($ttl) ?? 0);
+        return apcu_dec($this->key($key), $step, $success, $this->ttl($ttl) ?? 0);
     }
 }

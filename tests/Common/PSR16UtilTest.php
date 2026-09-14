@@ -40,6 +40,23 @@ class PSR16UtilTest extends TestCase
         $this->assertEquals(86462, PHPCache::ttl(new DateInterval("P0000-00-01T00:01:02")));
     }
 
+    public function testRejectsInvalidTtlType()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("TTL must be specified as a number, a DateInterval, or null");
+        PHPCache::ttl("not a ttl");
+    }
+
+    /**
+     * @throws CacheException
+     */
+    public function testAcceptsNumericAndNullTtl()
+    {
+        $this->assertSame(10, PHPCache::ttl(10));
+        $this->assertSame(10, PHPCache::ttl("10"));
+        $this->assertNull(PHPCache::ttl(null));
+    }
+
     /**
      * @throws CacheException
      */

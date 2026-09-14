@@ -151,7 +151,7 @@ class MCCache implements Cache, AtomicCounter
         // See https://www.php.net/manual/en/memcache.increment.php#90864
         $this->mc->add($key, 0, 0, $this->ttl($ttl) ?? 0);
 
-        return $this->mc->increment($key, $this->step($step));
+        return $this->mc->increment($key, $step);
     }
 
     /**
@@ -165,6 +165,6 @@ class MCCache implements Cache, AtomicCounter
         // See https://www.php.net/manual/en/memcache.increment.php#90864
         $this->mc->add($key, 0, 0, $this->ttl($ttl) ?? 0);
 
-        return $this->mc->decrement($key, $this->step($step));
+        return $this->mc->decrement($key, $step);
     }
 }
