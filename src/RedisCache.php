@@ -241,7 +241,6 @@ class RedisCache implements Cache, AtomicCounter
     {
         $ttl = $this->ttl($ttl);
         $key = $this->key($key);
-        $step = $this->step($step);
 
         // We can't just use incrby/decrby because it doesn't support expiry,
         // so we use multi-exec instead.

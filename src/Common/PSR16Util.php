@@ -5,7 +5,6 @@ namespace Vectorface\Cache\Common;
 use DateInterval;
 use DateTime;
 use Exception;
-use Traversable;
 use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Cache\Exception\InvalidArgumentException as CacheArgumentException;
 
@@ -40,10 +39,6 @@ trait PSR16Util
      */
     protected function values(iterable $values) : iterable
     {
-        if (!is_array($values) && !($values instanceof Traversable)) {
-            throw new CacheArgumentException("values must be provided as an array or a Traversable");
-        }
-
         $array = [];
         foreach ($values as $key => $value) {
             $array[$this->key($key)] = $value;
@@ -58,29 +53,11 @@ trait PSR16Util
      */
     protected function keys(iterable $keys) : array
     {
-        if (!is_array($keys) && !($keys instanceof Traversable)) {
-            throw new CacheArgumentException("keys must be provided as an array or a Traversable");
-        }
-
         $array = [];
         foreach ($keys as $key) {
             $array[] = $this->key($key);
         }
         return $array;
-    }
-
-    /**
-     * Enforce a valid step value for increment/decrement methods
-     *
-     * @throws CacheArgumentException Thrown if the step is not a legal value
-     */
-    protected function step(mixed $step) : int
-    {
-        if (!is_integer($step)) {
-            throw new CacheArgumentException("step must be an integer");
-        }
-
-        return $step;
     }
 
     /**

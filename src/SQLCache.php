@@ -324,8 +324,6 @@ class SQLCache implements Cache, AtomicCounter
      */
     public function increment(string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
     {
-        $step = $this->step($step);
-
         try {
             $result = $this->conn->beginTransaction();
             if (!$result) {
