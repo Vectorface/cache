@@ -8,10 +8,12 @@ use ReflectionClass;
 use stdClass;
 use TypeError;
 use Vectorface\Cache\AtomicCounter;
+use Vectorface\Cache\Cache;
 use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Cache\NullCache;
 use Vectorface\Cache\PHPCache;
 use Vectorface\Cache\LogDecorator;
+use Vectorface\Cache\TieredCache;
 use Vectorface\Tests\Cache\Helpers\FakeLogger;
 
 class LogDecoratorTest extends TestCase
@@ -103,18 +105,44 @@ class LogDecoratorTest extends TestCase
         $result = $loggedCache->flush();
         $this->assertEquals(false, $result);
         $this->assertEquals("debug: flush FAILURE", $logger->getLastMessage());
+    }
 
-        try {
-            $loggedCache->increment("counter");
-        } catch (CacheException $e) {
-            $this->assertEquals($e->getMessage(), "This decorated instance does not implement " . AtomicCounter::class);
-        }
+    /**
+     * @throws CacheException
+     */
+    public function testIncrementOnCacheWithoutCounterSupport()
+    {
+        // TieredCache implements Cache but not AtomicCounter
+        $loggedCache = new LogDecorator(new TieredCache(new PHPCache()), new FakeLogger());
 
-        try {
-            $loggedCache->decrement("counter");
-        } catch (CacheException $e) {
-            $this->assertEquals($e->getMessage(), "This decorated instance does not implement " . AtomicCounter::class);
-        }
+        $this->expectException(CacheException::class);
+        $this->expectExceptionMessage("This decorated instance does not implement " . AtomicCounter::class);
+        $loggedCache->increment("counter");
+    }
+
+    /**
+     * @throws CacheException
+     */
+    public function testDecrementOnCacheWithoutCounterSupport()
+    {
+        $loggedCache = new LogDecorator(new TieredCache(new PHPCache()), new FakeLogger());
+
+        $this->expectException(CacheException::class);
+        $this->expectExceptionMessage("This decorated instance does not implement " . AtomicCounter::class);
+        $loggedCache->decrement("counter");
+    }
+
+    /**
+     * @throws CacheException
+     */
+    public function testCacheMethodOnCounterWithoutCacheSupport()
+    {
+        // A pure AtomicCounter can be decorated, but the Cache methods must refuse to run
+        $loggedCache = new LogDecorator($this->createMock(AtomicCounter::class), new FakeLogger());
+
+        $this->expectException(CacheException::class);
+        $this->expectExceptionMessage("This decorated instance does not implement " . Cache::class);
+        $loggedCache->get("key");
     }
 
     /**
