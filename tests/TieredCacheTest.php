@@ -2,7 +2,9 @@
 
 namespace Vectorface\Tests\Cache;
 
+use stdClass;
 use TypeError;
+use InvalidArgumentException;
 use Vectorface\Cache\Exception\CacheException;
 use Vectorface\Cache\NullCache;
 use Vectorface\Cache\PHPCache;
@@ -82,5 +84,18 @@ class TieredCacheTest extends TestCase
     {
         $this->expectException(TypeError::class);
         new TieredCache('foo');
+    }
+
+    public function testNonCacheElement()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage("Argument 1 is not of class Cache");
+        new TieredCache([new PHPCache(), new stdClass()]);
+    }
+
+    public function testNonCacheVariadicArgument()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        new TieredCache(new PHPCache(), 'foo');
     }
 }
