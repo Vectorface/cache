@@ -78,8 +78,13 @@ class PhpRedisExtensionCacheTest extends GenericCacheTest
 
     public function testBadConstructor()
     {
-        $this->expectException(InvalidArgumentException::class);
-        $this->cache = new RedisCache(null);
+        try {
+            new RedisCache(null);
+            $this->fail("Expected an exception for an unsupported client");
+        } catch (InvalidArgumentException $e) {
+            // A bad constructor argument is not a PSR-16 cache argument error, so it must be the plain SPL class
+            $this->assertSame(InvalidArgumentException::class, get_class($e));
+        }
     }
 
     public function testCounterReadBackThroughGet()
