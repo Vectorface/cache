@@ -81,4 +81,26 @@ class PhpRedisExtensionCacheTest extends GenericCacheTest
         $this->expectException(InvalidArgumentException::class);
         $this->cache = new RedisCache(null);
     }
+
+    public function testCounterReadBackThroughGet()
+    {
+        // Counters are stored raw rather than serialized, and must come back through get() as-is
+        $this->assertTrue($this->cache->delete('counter'));
+        $this->assertEquals(3, $this->cache->increment('counter', 3));
+        $this->assertEquals(3, $this->cache->get('counter'));
+        $this->assertEquals(['counter' => 3], $this->cache->getMultiple(['counter']));
+        $this->assertTrue($this->cache->delete('counter'));
+    }
+
+    public function testNonStringValuesPassThroughUnpack()
+    {
+        // A client configured with its own serializer may hand back non-string values; they are returned untouched
+        $redis = $this->createMock(Redis::class);
+        $redis->method('get')->willReturn(5);
+        $redis->method('mget')->willReturn([5, ['x' => 1]]);
+
+        $cache = new RedisCache($redis);
+        $this->assertSame(5, $cache->get('counter'));
+        $this->assertSame(['a' => 5, 'b' => ['x' => 1]], $cache->getMultiple(['a', 'b']));
+    }
 }
