@@ -1,5 +1,4 @@
 # Cache
-[![Build Status](https://travis-ci.org/Vectorface/cache.svg?branch=master)](https://travis-ci.org/Vectorface/cache)
 [![Code Coverage](https://scrutinizer-ci.com/g/Vectorface/cache/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/Vectorface/cache/?branch=master)
 [![Latest Stable Version](https://poser.pugx.org/vectorface/cache/v/stable.svg)](https://packagist.org/packages/vectorface/cache)
 [![License](https://poser.pugx.org/vectorface/cache/license.svg)](https://packagist.org/packages/vectorface/cache)
@@ -21,19 +20,22 @@ $cache->set("foo", "bar"); // returns true if set. This cache always succeeds.
 $cache->get("foo"); // "bar", because we just set it.
 ```
 
-The interface supports optional time-to-live (expiry) where supported by the underlying cache type. The interface also provides `delete`, `clean`, and `flush` methods to delete one entry, all expired entries, and all entries (respectively).
+The interface supports optional time-to-live (expiry) where supported by the underlying cache type.
+
+The `Cache` interface is a superset of PSR-16's `CacheInterface`: it has the same `get`, `set`, `delete`, `clear`, `has`, `getMultiple`, `setMultiple`, and `deleteMultiple` methods with the same signatures and semantics. It adds `clean`, which removes expired entries, and `flush`, an alias for `clear`. Any cache in this library can be handed to PSR-16 tooling via the `SimpleCacheAdapter` (see below).
 
 ## Available Implementations
 
 * `APCCache`: APCu, using the [apcu](https://pecl.php.net/package/APCu) extension
-* `MCCache`: Memcache, using the [memcache](https://pecl.php.net/package/memcache) extension
-* `MemcachedCache`: Memcache, using the [memcached](https://pecl.php.net/package/memcached) extension
-* `RedisCache`: Redis, using either the [phpredis](https://github.com/phpredis/phpredis) extension or the [php-redis-client](https://github.com/cheprasov/php-redis-client) library
+* `MCCache`: Memcache, using the [memcache](https://pecl.php.net/package/memcache) extension. Takes a configured `Memcache` instance.
+* `MemcachedCache`: Memcache, using the [memcached](https://pecl.php.net/package/memcached) extension. Takes a configured `Memcached` instance.
+* `RedisCache`: Redis, using either the [phpredis](https://github.com/phpredis/phpredis) extension or the [php-redis-client](https://github.com/cheprasov/php-redis-client) library. Takes a connected `Redis` or `RedisClient` instance and an optional key prefix.
 * `NullCache`: A blackhole for your data
 * `PHPCache`: Stores values in a local variable, for one script execution only.
-* `SQLCache`: Values stored in an SQL table, accessed via PDO.
+* `SQLCache`: Values stored in an SQL table, accessed via PDO. Takes a `PDO` instance.
 * `TempFileCache`: Store values in temporary files. Does not support atomic counting.
 * `TieredCache`: Layer any of the above caches on top of each other to form a hybrid cache. Does not support atomic counting.
+* `LogDecorator`: Wraps any of the above and logs each operation to a PSR-3 logger.
 
 ## Real-World Use
 
@@ -44,7 +46,7 @@ use Vectorface\Cache\APCCache;
 use Vectorface\Cache\PHPCache;
 use Vectorface\Cache\TempFileCache;
 
-// Memcache and SQL-based caches also work, but aren't as good as examples.
+// The Memcache, Redis, and SQL-backed caches work the same way, but need a client/connection first.
 $caches = [new APCCache(), new PHPCache(), new TempFileCache()];
 foreach ($caches as $cache) {
     // Look ma! Same interface!
@@ -55,7 +57,7 @@ foreach ($caches as $cache) {
 
 ### Atomic Counters
 
-A common use of caches are to implement atomic counting, i.e. incrementing or decrementing by some amount. Atomicity is important for reliability in distributed environments to avoid race conditions.
+A common use of caches is to implement atomic counting, i.e. incrementing or decrementing by some amount. Atomicity is important for reliability in distributed environments to avoid race conditions.
 
 Not all cache implementations in this library support atomic counting, because it either isn't possible or doesn't make sense in that context.
 
@@ -94,9 +96,39 @@ $cache = new TieredCache([
     new TempFileCache(),
 ]);
 
-$cache->get("foo"); // Tries all caches in sequence until one succeeds. Fails if none succeed.
-$cache->set("foo", "bar"); // Sets a value in all caches.
-$cache->get("foo"); // Tries all caches in sequence. The fastest should succeed and return quickly.
+$cache->get("foo"); // Tries each cache in order and returns the first hit. Returns the default if none hit.
+$cache->set("foo", "bar"); // Sets the value in every cache. Succeeds if at least one cache accepted it.
+$cache->get("foo"); // Tries each cache in order. The fastest should hit and return quickly.
+$cache->delete("foo"); // Deletes from every cache. Succeeds only if every cache succeeded.
+```
+
+### Caching Expensive Calls
+
+`CacheHelper::fetch` wraps the common get-or-compute pattern: return the cached value if there is one, otherwise call a callback, cache its result, and return it.
+
+```php
+use Vectorface\Cache\APCCache;
+use Vectorface\Cache\CacheHelper;
+
+$cache = new APCCache();
+
+// Calls Report::build(2026, 9) only on a cache miss, and caches the result for 600 seconds.
+$report = CacheHelper::fetch($cache, "report:2026-09", [Report::class, 'build'], [2026, 9], 600);
+```
+
+Results of `null` are treated as a miss and are not cached.
+
+### Logging
+
+`LogDecorator` wraps any cache and logs every operation (including hits, misses, and approximate value sizes) to a PSR-3 logger at the level of your choice. Without a logger it is a transparent pass-through.
+
+```php
+use Vectorface\Cache\LogDecorator;
+use Vectorface\Cache\PHPCache;
+
+$cache = new LogDecorator(new PHPCache(), $psr3Logger, 'debug');
+$cache->set("foo", "bar"); // logged
+$cache->get("foo");        // logged, as a HIT
 ```
 
 ### PSR-16 Support
