@@ -166,6 +166,22 @@ class SQLCacheTest extends GenericCacheTest
         $this->assertFalse((new SQLCache($pdoMock))->decrement('foo'));
     }
 
+    public function testFailCommit()
+    {
+        $stmt = $this->createMock(\PDOStatement::class);
+        $stmt->method('execute')->willReturn(true);
+        $stmt->method('fetchColumn')->willReturn(serialize(4));
+        $stmt->method('rowCount')->willReturn(1);
+
+        $pdo = $this->createMock(PDO::class);
+        $pdo->method('prepare')->willReturn($stmt);
+        $pdo->method('beginTransaction')->willReturn(true);
+        $pdo->method('commit')->willReturn(false);
+
+        $this->assertFalse((new SQLCache($pdo))->increment('foo'));
+        $this->assertFalse((new SQLCache($pdo))->decrement('foo'));
+    }
+
     /**
      * @throws CacheException
      */
