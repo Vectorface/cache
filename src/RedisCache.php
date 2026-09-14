@@ -7,7 +7,7 @@ use DateInterval;
 use Vectorface\Cache\Common\PSR16Util;
 use Redis;
 use RedisClient\RedisClient;
-use Vectorface\Cache\Exception\InvalidArgumentException;
+use InvalidArgumentException;
 
 /**
  * A cache implementation using one of two client implementations:
