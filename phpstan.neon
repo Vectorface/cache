@@ -1,0 +1,14 @@
+parameters:
+    level: 5
+    paths:
+        - src
+    ignoreErrors:
+        # php-redis-client declares scan() in a version-specific trait, and types set()'s value as a string
+        -
+            identifier: method.notFound
+            message: '#RedisClient\\RedisClient::scan\(\)#'
+            path: src/RedisCache.php
+        -
+            identifier: argument.type
+            message: '#RedisClient2x6::set\(\) expects string, int given#'
+            path: src/RedisCache.php
