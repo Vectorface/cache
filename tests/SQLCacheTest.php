@@ -157,6 +157,19 @@ class SQLCacheTest extends GenericCacheTest
         $this->assertTrue((new SQLCache($pdo))->set('foo', 'bar'));
     }
 
+    /**
+     * Overwriting an entry fails the cached insert; the statement must stay usable for the next new entry.
+     */
+    public function testSetAfterOverwrite()
+    {
+        $this->assertTrue($this->cache->set('foo', 'bar'));
+        $this->assertTrue($this->cache->set('foo', 'baz'));
+        $this->assertTrue($this->cache->set('qux', 'quux'));
+
+        $this->assertEquals('baz', $this->cache->get('foo'));
+        $this->assertEquals('quux', $this->cache->get('qux'));
+    }
+
     public function testFailTransaction()
     {
         $pdoMock = $this->createMock(PDO::class);
