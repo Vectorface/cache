@@ -1,4 +1,4 @@
-name: Test
+name: CI
 
 on:
   push:
@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Start Redis
         run: docker run --name redis -p 6379:6379 -d redis:${{ matrix.redis-versions }}
@@ -41,7 +41,7 @@ jobs:
 
       - name: Get composer cache directory
         id: composercache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
       - name: Setup problem matchers
         run: |
@@ -49,14 +49,77 @@ jobs:
           echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
       - name: Cache composer dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ steps.composercache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
+          # composer.lock isn't committed, so key on the constraints
+          key: ${{ runner.os }}-php${{ matrix.php-versions }}-composer-${{ hashFiles('composer.json') }}
+          restore-keys: ${{ runner.os }}-php${{ matrix.php-versions }}-composer-
 
       - name: Install Composer dependencies
         run: composer install --prefer-dist
 
       - name: Test with phpunit
         run: composer test
+
+      - name: Coverage summary
+        if: matrix.php-versions == '8.4' && matrix.redis-versions == '8.0'
+        run: |
+          php -r '
+            $m = simplexml_load_file("build/logs/clover.xml")->project->metrics;
+            $pct = fn($covered, $total) => $total > 0 ? sprintf("%.1f%%", 100 * $covered / $total) : "n/a";
+            echo "### Coverage (PHP 8.4, Redis 8.0)\n\n";
+            echo "| | Covered | Total | % |\n|---|---:|---:|---:|\n";
+            foreach (["Lines" => "statements", "Methods" => "methods"] as $label => $kind) {
+              $covered = (int)$m["covered$kind"];
+              $total = (int)$m[$kind];
+              echo "| $label | $covered | $total | {$pct($covered, $total)} |\n";
+            }
+          ' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report
+        if: matrix.php-versions == '8.4' && matrix.redis-versions == '8.0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: |
+            build/logs/clover.xml
+            build/coverage
+
+  analysis:
+    name: Static analysis and coding standard
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP, with composer and extensions
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2, cs2pr
+          extensions: apcu, redis
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get composer cache directory
+        id: composercache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composercache.outputs.dir }}
+          key: ${{ runner.os }}-php8.4-composer-${{ hashFiles('composer.json') }}
+          restore-keys: ${{ runner.os }}-php8.4-composer-
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist
+
+      - name: PHPStan
+        run: composer analyse -- --error-format=github
+
+      - name: PHP_CodeSniffer
+        run: vendor/bin/phpcs -q --report=checkstyle | cs2pr

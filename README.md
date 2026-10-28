@@ -1,5 +1,5 @@
 # Cache
-[![Code Coverage](https://scrutinizer-ci.com/g/Vectorface/cache/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/Vectorface/cache/?branch=master)
+[![CI](https://github.com/Vectorface/cache/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Vectorface/cache/actions/workflows/ci.yml?query=branch%3Amaster)
 [![Latest Stable Version](https://poser.pugx.org/vectorface/cache/v/stable.svg)](https://packagist.org/packages/vectorface/cache)
 [![License](https://poser.pugx.org/vectorface/cache/license.svg)](https://packagist.org/packages/vectorface/cache)
 
