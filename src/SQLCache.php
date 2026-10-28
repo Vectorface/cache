@@ -137,7 +137,7 @@ class SQLCache implements Cache, AtomicCounter
                 __METHOD__ . ($lock ? '.lock' : ''),
                 self::GET_SQL . ($lock ? ' FOR UPDATE' : '')
             );
-            $stmt->execute([$key]);
+            $this->execute($stmt, [$key]);
         } catch (PDOException) {
             return $default;
         }
@@ -202,7 +202,7 @@ class SQLCache implements Cache, AtomicCounter
 
         try {
             $stmt = $this->getStatement(__METHOD__ . ".insert", self::SET_SQL);
-            return $stmt->execute([$key, $value, $ttl]);
+            return $this->execute($stmt, [$key, $value, $ttl]);
         } catch (PDOException) {
             // Insert can fail if the entry exists; It's normal.
         }
@@ -210,7 +210,7 @@ class SQLCache implements Cache, AtomicCounter
         try {
             // Don't check rowCount: MySQL reports 0 affected rows when the update changes nothing
             $stmt = $this->getStatement(__METHOD__ . ".update", self::UPDATE_SQL);
-            return $stmt->execute([$value, $ttl, $key]);
+            return $this->execute($stmt, [$value, $ttl, $key]);
         } catch (PDOException) {
             return false;
         }
@@ -237,7 +237,7 @@ class SQLCache implements Cache, AtomicCounter
 
         try {
             $stmt = $this->getStatement(__METHOD__, self::DELETE_SQL);
-            return $stmt->execute([$key]);
+            return $this->execute($stmt, [$key]);
         } catch (PDOException) {
             return false;
         }
@@ -309,7 +309,7 @@ class SQLCache implements Cache, AtomicCounter
 
         try {
             $stmt = $this->getStatement(__METHOD__, self::HAS_SQL);
-            $stmt->execute([$key]);
+            $this->execute($stmt, [$key]);
         } catch (PDOException) {
             return false;
         }
@@ -335,7 +335,7 @@ class SQLCache implements Cache, AtomicCounter
             $next = ($current ?? 0) + $step;
             if ($current !== null) {
                 $stmt = $this->getStatement(__METHOD__, self::UPDATE_INCREMENT_SQL);
-                $result = $stmt->execute([serialize($next), $this->hashKey($this->key($key))]) && $stmt->rowCount() === 1;
+                $result = $this->execute($stmt, [serialize($next), $this->hashKey($this->key($key))]) && $stmt->rowCount() === 1;
             } else {
                 $result = $this->set($key, $next, $ttl);
             }
@@ -378,6 +378,43 @@ class SQLCache implements Cache, AtomicCounter
     private function getStatement(string $method, string $sql) : PDOStatement
     {
         return $this->statements[$method] ??= $this->conn->prepare($sql);
+    }
+
+    /**
+     * Execute a stored statement, resetting it when execution fails so it stays usable.
+     *
+     * A failed statement may be left mid-execution; on PHP 8.4.27, a pdo_sqlite statement whose execution fails
+     * (e.g. a duplicate key on insert) can't be executed again until it is reset.
+     *
+     * @param PDOStatement $stmt A statement from getStatement()
+     * @param array $params The statement's parameters
+     * @return bool Whether execution succeeded
+     * @throws PDOException When execution fails and the connection throws exceptions
+     */
+    private function execute(PDOStatement $stmt, array $params) : bool
+    {
+        try {
+            $result = $stmt->execute($params);
+        } catch (PDOException $e) {
+            $this->reset($stmt);
+            throw $e;
+        }
+        if (!$result) {
+            $this->reset($stmt);
+        }
+        return $result;
+    }
+
+    /**
+     * Reset a statement after a failed execution, ignoring any error from the reset itself.
+     */
+    private function reset(PDOStatement $stmt) : void
+    {
+        try {
+            $stmt->closeCursor();
+        } catch (PDOException) {
+            // The statement is already unusable; the next execute will report why
+        }
     }
 
     /**
