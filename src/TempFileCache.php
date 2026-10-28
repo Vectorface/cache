@@ -1,4 +1,5 @@
 <?php
+
 /** @noinspection PhpUsageOfSilenceOperatorInspection */
 
 namespace Vectorface\Cache;
@@ -13,7 +14,8 @@ use Vectorface\Cache\Common\PSR16Util;
  */
 class TempFileCache implements Cache
 {
-    use MultipleTrait, PSR16Util;
+    use MultipleTrait;
+    use PSR16Util;
 
     private string $directory;
     private string $extension;

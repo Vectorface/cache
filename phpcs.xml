@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<ruleset name="Vectorface Cache">
+    <description>PSR-12, with a space before a return type's colon.</description>
+
+    <file>src</file>
+    <file>tests</file>
+
+    <arg name="colors"/>
+    <arg value="sp"/>
+
+    <rule ref="PSR12">
+        <exclude name="PSR12.Functions.ReturnTypeDeclaration.SpaceBeforeColon"/>
+    </rule>
+
+    <!-- Declares FakeMemcache one of two ways, depending on the PHP version and Memcache extension -->
+    <rule ref="PSR1.Classes.ClassDeclaration.MultipleClasses">
+        <exclude-pattern>tests/Helpers/FakeMemcache.php</exclude-pattern>
+    </rule>
+</ruleset>

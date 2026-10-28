@@ -1,4 +1,5 @@
 <?php
+
 /** @noinspection PhpComposerExtensionStubsInspection */
 
 namespace Vectorface\Tests\Cache;
@@ -60,7 +61,10 @@ class PhpRedisExtensionCacheTest extends GenericCacheTest
     public function testInvalidSetMultipleLeavesConnectionUsable()
     {
         try {
-            $this->cache->setMultiple((function () { yield 'ok' => 1; yield new stdClass() => 2; })());
+            $this->cache->setMultiple((function () {
+                yield 'ok' => 1;
+                yield new stdClass() => 2;
+            })());
             $this->fail("Expected exception");
         } catch (\Vectorface\Cache\Exception\InvalidArgumentException) {
         }
@@ -73,7 +77,9 @@ class PhpRedisExtensionCacheTest extends GenericCacheTest
     {
         $this->assertTrue($this->cache->delete('missing'));
         $this->assertTrue($this->cache->deleteMultiple(['missing', 'missing2']));
-        $this->assertTrue($this->cache->deleteMultiple((function () { yield from []; })()));
+        $this->assertTrue($this->cache->deleteMultiple((function () {
+            yield from [];
+        })()));
     }
 
     public function testBadConstructor()

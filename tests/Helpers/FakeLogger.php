@@ -1,4 +1,5 @@
 <?php
+
 /** @noinspection PhpComposerExtensionStubsInspection */
 
 namespace Vectorface\Tests\Cache\Helpers;

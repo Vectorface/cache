@@ -7,8 +7,8 @@ namespace Vectorface\Tests\Cache\Helpers;
  */
 class Memcached
 {
-    const RES_SUCCESS = 0;
-    const RES_FAILURE = 1;
-    const RES_NOTSTORED = 14;
-    const RES_NOTFOUND = 16;
+    public const RES_SUCCESS = 0;
+    public const RES_FAILURE = 1;
+    public const RES_NOTSTORED = 14;
+    public const RES_NOTFOUND = 16;
 }

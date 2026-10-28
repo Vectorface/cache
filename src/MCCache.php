@@ -1,4 +1,5 @@
 <?php
+
 /** @noinspection PhpComposerExtensionStubsInspection */
 
 namespace Vectorface\Cache;
@@ -35,7 +36,8 @@ class MCCache implements Cache, AtomicCounter
      */
     public function __construct(
         private Memcache $mc,
-    ) {}
+    ) {
+    }
 
     /**
      * @inheritDoc

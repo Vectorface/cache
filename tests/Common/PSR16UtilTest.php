@@ -17,19 +17,19 @@ class PSR16UtilTest extends TestCase
     public function testEnforcesScalarKey()
     {
         $this->expectException(TypeError::class);
-        (new PHPCache)->get(new stdClass);
+        (new PHPCache())->get(new stdClass());
     }
 
     public function testEnforcesScalarKeys()
     {
         $this->expectException(InvalidArgumentException::class);
-        (new PHPCache)->getMultiple([new stdClass()]);
+        (new PHPCache())->getMultiple([new stdClass()]);
     }
 
     public function testEnforcesIterableKeys()
     {
         $this->expectException(TypeError::class);
-        (new PHPCache)->getMultiple("not array or Traversable");
+        (new PHPCache())->getMultiple("not array or Traversable");
     }
 
     /**
