@@ -24,8 +24,7 @@ class MemcachedCache implements Cache, AtomicCounter
      */
     public function __construct(
         private Memcached $mc,
-    ) {
-    }
+    ) {}
 
     /**
      * @inheritDoc

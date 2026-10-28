@@ -114,8 +114,7 @@ class SQLCache implements Cache, AtomicCounter
      */
     public function __construct(
         private PDO $conn,
-    ) {
-    }
+    ) {}
 
     /**
      * @inheritDoc

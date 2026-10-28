@@ -14,8 +14,7 @@ class SimpleCacheAdapter implements CacheInterface
      */
     public function __construct(
         protected Cache $cache,
-    ) {
-    }
+    ) {}
 
     /**
      * @inheritDoc

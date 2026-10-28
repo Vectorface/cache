@@ -36,8 +36,7 @@ class MCCache implements Cache, AtomicCounter
      */
     public function __construct(
         private Memcache $mc,
-    ) {
-    }
+    ) {}
 
     /**
      * @inheritDoc

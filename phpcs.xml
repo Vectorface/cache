@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <ruleset name="Vectorface Cache">
-    <description>PSR-12, with a space before a return type's colon.</description>
+    <description>PSR-12, with a space before a return type's colon and empty bodies written as {}.</description>
 
     <file>src</file>
     <file>tests</file>
@@ -10,10 +10,15 @@
 
     <rule ref="PSR12">
         <exclude name="PSR12.Functions.ReturnTypeDeclaration.SpaceBeforeColon"/>
+        <!-- Allows an empty body as {}, e.g. a constructor that only promotes properties: ") {}" -->
+        <exclude name="Squiz.WhiteSpace.ScopeClosingBrace.ContentBefore"/>
     </rule>
 
     <!-- Declares FakeMemcache one of two ways, depending on the PHP version and Memcache extension -->
     <rule ref="PSR1.Classes.ClassDeclaration.MultipleClasses">
+        <exclude-pattern>tests/Helpers/FakeMemcache.php</exclude-pattern>
+    </rule>
+    <rule ref="PSR2.Classes.ClassDeclaration.OpenBraceNewLine">
         <exclude-pattern>tests/Helpers/FakeMemcache.php</exclude-pattern>
     </rule>
 </ruleset>
