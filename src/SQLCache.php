@@ -1,5 +1,7 @@
 <?php
+
 /** @noinspection SqlResolve */
+
 /** @noinspection SqlWithoutWhere */
 /** @noinspection SqlNoDataSourceInspection */
 /** @noinspection PhpComposerExtensionStubsInspection */
@@ -46,57 +48,57 @@ class SQLCache implements Cache, AtomicCounter
     /**
      * Hash keys beyond this size
      */
-    const MAX_KEY_LEN = 64;
+    public const MAX_KEY_LEN = 64;
 
     /**
      * Statement for flushing all entries from the cache.
      */
-    const FLUSH_SQL = 'DELETE FROM cache';
+    public const FLUSH_SQL = 'DELETE FROM cache';
 
     /**
      * Statement for deleting expired entries from the cache.
      */
-    const CLEAN_SQL = 'DELETE FROM cache WHERE expires <= UNIX_TIMESTAMP()';
+    public const CLEAN_SQL = 'DELETE FROM cache WHERE expires <= UNIX_TIMESTAMP()';
 
     /**
      * Statement for inserting or updating entries in the cache.
      */
-    const SET_SQL = 'INSERT INTO cache (entry, value, expires) VALUES(?, ?, ?)';
+    public const SET_SQL = 'INSERT INTO cache (entry, value, expires) VALUES(?, ?, ?)';
 
     /**
      * Statement for updating if an entry already exists.
      */
-    const UPDATE_SQL = 'UPDATE cache SET value = ?, expires = ? WHERE entry = ?';
+    public const UPDATE_SQL = 'UPDATE cache SET value = ?, expires = ? WHERE entry = ?';
 
     /**
      * Statement for atomically updating a stored count if an entry already exists.
      */
-    const UPDATE_INCREMENT_SQL = 'UPDATE cache SET value = ? WHERE entry = ?';
+    public const UPDATE_INCREMENT_SQL = 'UPDATE cache SET value = ? WHERE entry = ?';
 
     /**
      * Statement for checking if an entry exists
      */
-    const HAS_SQL = 'SELECT COUNT(*) AS num FROM cache WHERE entry = ? AND expires >= UNIX_TIMESTAMP()';
+    public const HAS_SQL = 'SELECT COUNT(*) AS num FROM cache WHERE entry = ? AND expires >= UNIX_TIMESTAMP()';
 
     /**
      * Statement for retrieving an entry from the cache
      */
-    const GET_SQL = 'SELECT value FROM cache WHERE entry = ? AND expires >= UNIX_TIMESTAMP()';
+    public const GET_SQL = 'SELECT value FROM cache WHERE entry = ? AND expires >= UNIX_TIMESTAMP()';
 
     /**
      * Statement for retrieving entries from the cache (no statement caching)
      */
-    const MGET_SQL = 'SELECT entry, value FROM cache WHERE entry IN(%s) AND expires >= UNIX_TIMESTAMP()';
+    public const MGET_SQL = 'SELECT entry, value FROM cache WHERE entry IN(%s) AND expires >= UNIX_TIMESTAMP()';
 
     /**
      * Statement for deleting an entry from the cache
      */
-    const DELETE_SQL = 'DELETE FROM cache WHERE entry = ?';
+    public const DELETE_SQL = 'DELETE FROM cache WHERE entry = ?';
 
     /**
      * Statement for deleting entries from the cache (no statement caching)
      */
-    const MDELETE_SQL = 'DELETE FROM cache WHERE entry IN(%s)';
+    public const MDELETE_SQL = 'DELETE FROM cache WHERE entry IN(%s)';
 
     /**
      * An associative array of PDO statements used in get/set.
@@ -335,7 +337,8 @@ class SQLCache implements Cache, AtomicCounter
             $next = ($current ?? 0) + $step;
             if ($current !== null) {
                 $stmt = $this->getStatement(__METHOD__, self::UPDATE_INCREMENT_SQL);
-                $result = $this->execute($stmt, [serialize($next), $this->hashKey($this->key($key))]) && $stmt->rowCount() === 1;
+                $result = $this->execute($stmt, [serialize($next), $this->hashKey($this->key($key))])
+                    && $stmt->rowCount() === 1;
             } else {
                 $result = $this->set($key, $next, $ttl);
             }

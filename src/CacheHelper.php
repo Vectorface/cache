@@ -34,8 +34,13 @@ class CacheHelper
      * @return mixed The value stored in the cache, or returned by the callback.
      * @throws Exception\CacheException
      */
-    public static function fetch(Cache $cache, string $key, callable $callback, array $args = [], DateInterval|int|null $ttl = 300) : mixed
-    {
+    public static function fetch(
+        Cache $cache,
+        string $key,
+        callable $callback,
+        array $args = [],
+        DateInterval|int|null $ttl = 300
+    ) : mixed {
         $item = $cache->get($key);
         if ($item === null) {
             $item = $callback(...$args);

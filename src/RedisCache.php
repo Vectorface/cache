@@ -1,4 +1,5 @@
 <?php
+
 /** @noinspection PhpComposerExtensionStubsInspection */
 
 namespace Vectorface\Cache;
@@ -17,7 +18,9 @@ use InvalidArgumentException;
  */
 class RedisCache implements Cache, AtomicCounter
 {
-    use PSR16Util { key as PSR16Key; }
+    use PSR16Util {
+        key as PSR16Key;
+    }
 
     /** @var Redis|RedisClient */
     private $redis;
@@ -237,8 +240,12 @@ class RedisCache implements Cache, AtomicCounter
         return $this->atomicCounter('decrby', $key, $step, $ttl);
     }
 
-    private function atomicCounter(string $method, string $key, int $step = 1, DateInterval|int|null $ttl = null) : int|false
-    {
+    private function atomicCounter(
+        string $method,
+        string $key,
+        int $step = 1,
+        DateInterval|int|null $ttl = null
+    ) : int|false {
         $ttl = $this->ttl($ttl);
         $key = $this->key($key);
 

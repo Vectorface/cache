@@ -16,7 +16,8 @@ use Vectorface\Cache\Common\MultipleTrait;
  */
 class PHPCache implements Cache, AtomicCounter
 {
-    use MultipleTrait, PSR16Util;
+    use MultipleTrait;
+    use PSR16Util;
 
     /**
      * The "cache" which stores entries for the lifetime of the request.

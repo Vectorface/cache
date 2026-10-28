@@ -43,7 +43,9 @@ class MemcachedCacheTest extends GenericCacheTest
     {
         // Memcached::setMulti rejects an empty array, so the cache must short-circuit
         $this->assertTrue($this->cache->setMultiple([]));
-        $this->assertTrue($this->cache->setMultiple((function () { yield from []; })()));
+        $this->assertTrue($this->cache->setMultiple((function () {
+            yield from [];
+        })()));
     }
 
     public function testGetMultiple()

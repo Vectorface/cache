@@ -17,7 +17,7 @@ class CacheHelperTest extends TestCase
     {
         /* A callback that returns "foo" only the first time. */
         $value = 'foo';
-        $callback = static function() use (&$value) {
+        $callback = static function () use (&$value) {
             $once = $value;
             $value = null;
             return $once;
@@ -30,7 +30,7 @@ class CacheHelperTest extends TestCase
         $this->assertNull($value);
 
         /* A callback that returns its arguments, so we can test various argument formats. */
-        $callback = static function() {
+        $callback = static function () {
             return func_get_args();
         };
 
@@ -45,6 +45,7 @@ class CacheHelperTest extends TestCase
     public function testBadThings()
     {
         $this->expectException(TypeError::class);
-        CacheHelper::fetch(new PHPCache(), $this, static function() {});
+        CacheHelper::fetch(new PHPCache(), $this, static function () {
+        });
     }
 }

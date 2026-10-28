@@ -87,7 +87,7 @@ abstract class GenericCacheTest extends TestCase
             $this->assertEquals(
                 ['foo' => 'dflt', 'bar' => 'dflt'],
                 $cache->getMultiple(
-                    (static function() {
+                    (static function () {
                         yield 'foo';
                         yield 'bar';
                     })(),
@@ -96,7 +96,7 @@ abstract class GenericCacheTest extends TestCase
                 "Expected the result to be populated with default values"
             );
             $this->assertTrue($cache->setMultiple(
-                (static function() {
+                (static function () {
                     yield 'foo' => 'bar';
                     yield 'baz' => 'quux';
                 })()
@@ -104,7 +104,7 @@ abstract class GenericCacheTest extends TestCase
             $this->assertEquals('bar', $cache->get('foo'));
             $this->assertEquals('quux', $cache->get('baz'));
             $this->assertTrue($cache->deleteMultiple(
-                (static function() {
+                (static function () {
                     yield 'foo';
                     yield 'baz';
                 })()
@@ -174,7 +174,7 @@ abstract class GenericCacheTest extends TestCase
     {
         foreach ($this->getCaches() as $cache) {
             $cache->set($key, $data, $ttl);
-            $cache->set($key."2", $data, $ttl + 50000);
+            $cache->set($key . "2", $data, $ttl + 50000);
             $flush ? $cache->flush() : $cache->clear();
 
             $this->assertNull($cache->get($key));
@@ -215,7 +215,7 @@ abstract class GenericCacheTest extends TestCase
      */
     public function testPSR16()
     {
-        $expectIAE = function($callback, $message = '') {
+        $expectIAE = function ($callback, $message = '') {
             try {
                 $callback();
                 $this->fail("{$message}: Expected exception, but none happened");
@@ -236,11 +236,21 @@ abstract class GenericCacheTest extends TestCase
 
         foreach ($this->getCaches() as $cache) {
             $cache = new SimpleCacheAdapter($cache);
-            $expectIAE(function() use($cache) { $cache->get(new stdClass()); }, "Invalid key in get");
-            $expectIAE(function() use($cache) { $cache->set(new stdClass(), "value"); }, "Invalid key in set, exception expected");
-            $expectIAE(function() use($cache) { $cache->set("key", "value", []); }, "Invalid ttl in " . get_class($cache) . " set, exception expected");
-            $expectIAE(function() use($cache) { $cache->getMultiple(new Exception()); }, "Shouldn't be able to getMultiple with a non-iterable");
-            $expectIAE(function() use($cache) { $cache->setMultiple(new Exception()); }, "Shouldn't be able to setMultiple on a non-iterable");
+            $expectIAE(function () use ($cache) {
+                $cache->get(new stdClass());
+            }, "Invalid key in get");
+            $expectIAE(function () use ($cache) {
+                $cache->set(new stdClass(), "value");
+            }, "Invalid key in set, exception expected");
+            $expectIAE(function () use ($cache) {
+                $cache->set("key", "value", []);
+            }, "Invalid ttl in " . get_class($cache) . " set, exception expected");
+            $expectIAE(function () use ($cache) {
+                $cache->getMultiple(new Exception());
+            }, "Shouldn't be able to getMultiple with a non-iterable");
+            $expectIAE(function () use ($cache) {
+                $cache->setMultiple(new Exception());
+            }, "Shouldn't be able to setMultiple on a non-iterable");
         }
     }
 

@@ -1,5 +1,7 @@
 <?php
+
 /** @noinspection SqlResolve */
+
 /** @noinspection SqlNoDataSourceInspection */
 /** @noinspection PhpComposerExtensionStubsInspection */
 
@@ -128,7 +130,7 @@ class SQLCacheTest extends GenericCacheTest
         $pdo->method('getAttribute')->with(PDO::ATTR_DRIVER_NAME)->willReturn('mysql');
         $pdo->method('beginTransaction')->willReturn(true);
         $pdo->method('commit')->willReturn(true);
-        $pdo->method('prepare')->willReturnCallback(function($s) use (&$sql, $stmt) {
+        $pdo->method('prepare')->willReturnCallback(function ($s) use (&$sql, $stmt) {
             $sql[] = $s;
             return $stmt;
         });
